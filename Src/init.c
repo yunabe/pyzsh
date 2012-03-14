@@ -36,6 +36,8 @@
 
 #include "version.h"
 
+#include <Python.h>
+
 /**/
 int noexitct = 0;
 
@@ -1466,6 +1468,7 @@ mod_export int use_exit_printed;
 mod_export int
 zsh_main(UNUSED(int argc), char **argv)
 {
+    Py_Initialize();
     char **t, *runscript = NULL;
     int t0;
 #ifdef USE_LOCALE

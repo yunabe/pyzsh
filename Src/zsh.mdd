@@ -60,6 +60,9 @@ zshterm.h: ../config.h
 
 zshpaths.h: Makemod $(CONFIG_INCS)
 	@echo '#define MODULE_DIR "'$(MODDIR)'"' > zshpaths.h.tmp
+	@if test x$(pydir) != xno; then \
+	  echo '#define PYTHON_DIR "'$(pydir)'"' >> zshpaths.h.tmp; \
+	fi
 	@if test x$(sitescriptdir) != xno; then \
 	  echo '#define SITESCRIPT_DIR "'$(sitescriptdir)'"' >> zshpaths.h.tmp; \
 	fi
