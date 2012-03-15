@@ -173,6 +173,7 @@ install.cygwin-lib: $(LIBZSH)
 # uninstall binary
 uninstall.bin-here: $(UNINSTLIB)
 	rm -f $(DESTDIR)$(bindir)/$(tzsh)-$(VERSION) $(DESTDIR)$(bindir)/$(tzsh)$(EXEEXT)
+	rm -rf $(DESTDIR)$(pydir)
 .PHONY: uninstall.bin-here uninstall.bin-@L@
 
 uninstall.bin-N:
