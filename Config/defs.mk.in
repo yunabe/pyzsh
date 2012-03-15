@@ -51,6 +51,7 @@ sitefndir       = @sitefndir@
 scriptdir       = @scriptdir@
 sitescriptdir   = @sitescriptdir@
 htmldir         = @htmldir@
+pydir           = $(libdir)/$(tzsh)/$(VERSION)/python
 
 # compilation
 CC              = @CC@
@@ -64,7 +65,7 @@ DLCFLAGS        = @DLCFLAGS@
 DLLDFLAGS       = @DLLDFLAGS@
 LIBLDFLAGS      = @LIBLDFLAGS@
 EXELDFLAGS      = @EXELDFLAGS@
-LIBS            = @LIBS@
+LIBS            = @LIBS@ -lpython2.6
 DL_EXT          = @DL_EXT@
 DLLD            = @DLLD@
 EXPOPT          = @EXPOPT@

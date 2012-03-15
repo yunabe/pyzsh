@@ -157,6 +157,8 @@ install.bin-here: zsh$(EXEEXT) $(INSTLIB)
 	rm -f $(DESTDIR)$(bindir)/$(tzsh).new
 	$(LN) $(DESTDIR)$(bindir)/$(tzsh)-$(VERSION)$(EXEEXT) $(DESTDIR)$(bindir)/$(tzsh).new
 	mv $(DESTDIR)$(bindir)/$(tzsh).new $(DESTDIR)$(bindir)/$(tzsh)$(EXEEXT)
+	${SHELL} $(sdir_top)/mkinstalldirs $(DESTDIR)$(pydir)
+	/bin/cp *.py $(DESTDIR)$(pydir)
 .PHONY: install.bin-here
 
 install.bin-N:
