@@ -1452,6 +1452,31 @@ fallback_compctlread(char *name, UNUSED(char **args), UNUSED(Options ops), UNUSE
     return 1;
 }
 
+static void
+setpythonpath(void)
+{
+  char* oldval = getenv("PYTHONPATH");
+  int oldval_len;
+  if (oldval == NULL) {
+    oldval_len = 0;
+  } else {
+    oldval_len = strlen(oldval);
+  }
+  if (oldval_len == 0) {
+    setenv("PYTHONPATH", PYTHON_DIR, 1);
+    return;
+  }
+  int newval_len = strlen(oldval) + strlen(PYTHON_DIR) + 1;
+  char* newval = zalloc(newval_len + 1);
+  memcpy(newval, oldval, oldval_len);
+  newval[oldval_len] = ':';
+  strcpy(newval + oldval_len + 1, PYTHON_DIR);
+  setenv("PYTHONPATH", newval, 1);
+  zfree(newval, newval_len + 1);
+}
+
+extern void init_native(void);
+
 /*
  * Used by zle to indicate it has already printed a "use 'exit' to exit"
  * message.
@@ -1468,7 +1493,9 @@ mod_export int use_exit_printed;
 mod_export int
 zsh_main(UNUSED(int argc), char **argv)
 {
+    setpythonpath();  // Must be called before Py_Initialize.
     Py_Initialize();
+    init_native();
     char **t, *runscript = NULL;
     int t0;
 #ifdef USE_LOCALE
