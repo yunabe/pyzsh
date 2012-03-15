@@ -63,8 +63,8 @@ install-strip:
 	$(MAKE) install STRIPFLAGS="-s"
 
 # install/uninstall most things
-install: install.bin install.modules install.fns install.man
-uninstall: uninstall.bin uninstall.modules uninstall.fns uninstall.man
+install: install.bin install.modules install.fns install.man install.python
+uninstall: uninstall.bin uninstall.modules uninstall.fns uninstall.man uninstall.python
 
 # install/uninstall just the binary
 install.bin uninstall.bin:
@@ -101,6 +101,16 @@ uninstall.fns:
 	  DESTDIR="$(DESTDIR)" VERSION="$(VERSION)" \
 	  $(SHELL) $(sdir_top)/Config/uninstallfns.sh || exit 1; \
 	fi; \
+	exit 0
+
+# install/uninstall just the shell functions
+install.python:
+	$(SHELL) $(sdir_top)/mkinstalldirs $(DESTDIR)$(pydir)/zsh; \
+	/bin/cp -r Python/* $(DESTDIR)$(pydir)/zsh; \
+	exit 0
+
+uninstall.python:
+	rm -rf $(DESTDIR)$(pydir) \
 	exit 0
 
 # install/uninstall just the info pages
