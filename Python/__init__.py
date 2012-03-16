@@ -15,4 +15,10 @@ def scan():
   return w.getvalue()
 
 def run():
-  os.system(scan())
+  cmd = scan()
+  if cmd.startswith(':'):
+    print eval(cmd[1:])
+  else:
+    os.system(cmd)
+  sys.stderr.flush()
+  sys.stdout.flush()
