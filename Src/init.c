@@ -217,6 +217,20 @@ loop(int toplevel, int justonce)
     return LOOP_OK;
 }
 
+enum loop_return
+python_loop(int toplevel, int justonce) {
+  for (;;) {
+    hbegin(1);
+    PyRun_SimpleString("import zsh;zsh.run()");
+    hend(NULL);
+    if (lexstop) {
+      break;
+    }
+  }
+  tok = ENDINPUT; // To exit loop.
+  return LOOP_OK;
+}
+
 static char *cmd;
 static int restricted;
 
@@ -1596,7 +1610,7 @@ zsh_main(UNUSED(int argc), char **argv)
 	do {
 	    /* Reset return from top level which gets us back here */
 	    retflag = 0;
-	    loop(1,0);
+	    python_loop(1,0);
 	} while (tok != ENDINPUT && (tok != LEXERR || isset(SHINSTDIN)));
 	if (tok == LEXERR) {
 	    /* Make sure a parse error exits with non-zero status */
