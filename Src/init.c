@@ -220,6 +220,7 @@ loop(int toplevel, int justonce)
 enum loop_return
 python_loop(int toplevel, int justonce) {
   for (;;) {
+    // TODO: interrupts ^C
     hbegin(1);
     PyRun_SimpleString("import zsh;zsh.run()");
     hend(NULL);
