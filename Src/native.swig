@@ -5,3 +5,5 @@
 int lexstop;
 
 int hgetc(void);
+
+void closedumps(void);
