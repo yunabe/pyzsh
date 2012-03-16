@@ -1112,8 +1112,10 @@ run_init_scripts(void)
 	    if (isset(RCS) && isset(GLOBALRCS))
 		source(GLOBAL_ZSHRC);
 #endif
-	    if (isset(RCS) && unset(PRIVILEGED))
+	    if (isset(RCS) && unset(PRIVILEGED)) {
 		sourcehome(".zshrc");
+		python_sourcehome(".pyzshrc");
+	    }
 	}
 	if (islogin) {
 #ifdef GLOBAL_ZLOGIN
@@ -1308,6 +1310,31 @@ sourcehome(char *s)
 	sprintf(buf, "%s/%s", h, s);
 	unqueue_signals();
 	source(buf);
+    }
+}
+
+/**/
+void
+python_sourcehome(char *s)
+{
+    char *h;
+    FILE *fp;
+
+    queue_signals();
+    if (EMULATION(EMULATE_SH|EMULATE_KSH) || !(h = getsparam("ZDOTDIR"))) {
+	h = home;
+	if (!h)
+	    return;
+    }
+
+    {
+	/* Let source() complain if path is too long */
+	VARARR(char, buf, strlen(h) + strlen(s) + 2);
+	sprintf(buf, "%s/%s", h, s);
+	unqueue_signals();
+	if ((fp = fopen(buf, "r")) != NULL) {
+		PyRun_SimpleFileEx(fp, buf, 1 /* closeit */);
+	}
     }
 }
 
