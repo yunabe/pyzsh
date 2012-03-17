@@ -219,14 +219,27 @@ loop(int toplevel, int justonce)
 
 enum loop_return
 python_loop(int toplevel, int justonce) {
+  pushheap();
+  if (!toplevel) {
+    lexsave();
+  }
   for (;;) {
-    // TODO: interrupts ^C
-    hbegin(1);
+    freeheap();
+    hbegin(1);  // init history mech
+    use_exit_printed = 0;
+    intr();
+    lexinit();
+
     PyRun_SimpleString("import zsh;zsh.run()");
+
     hend(NULL);
-    if (lexstop) {
+    if (lexstop && !errflag) {
+      // errflag is true when ^C is pressed.
       break;
     }
+  }
+  if (!toplevel) {
+    lexrestore();
   }
   tok = ENDINPUT; // To exit loop.
   return LOOP_OK;
@@ -1611,7 +1624,7 @@ zsh_main(UNUSED(int argc), char **argv)
 	do {
 	    /* Reset return from top level which gets us back here */
 	    retflag = 0;
-	    python_loop(1,0);
+      python_loop(1,0);
 	} while (tok != ENDINPUT && (tok != LEXERR || isset(SHINSTDIN)));
 	if (tok == LEXERR) {
 	    /* Make sure a parse error exits with non-zero status */

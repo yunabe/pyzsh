@@ -3,6 +3,7 @@
 %}
 
 int lexstop;
+int errflag;
 
 int hgetc(void);
 
