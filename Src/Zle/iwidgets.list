@@ -105,6 +105,7 @@
 "spell-word", spellword, 0
 "set-local-history", setlocalhistory, 0
 "transpose-chars", transposechars, 0
+"switch-cmd-mode", switchcmdmode, 0
 "transpose-words", transposewords, 0
 "undefined-key", undefinedkey, 0
 "undo", undo, ZLE_KEEPSUFFIX

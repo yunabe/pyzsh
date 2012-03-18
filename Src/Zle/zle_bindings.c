@@ -106,7 +106,7 @@ int emacsbind[32] = {
     /* ^Q */ z_pushline,
     /* ^R */ z_historyincrementalsearchbackward,
     /* ^S */ z_historyincrementalsearchforward,
-    /* ^T */ z_transposechars,
+    /* ^T */ z_switchcmdmode,
     /* ^U */ z_killwholeline,
     /* ^V */ z_quotedinsert,
     /* ^W */ z_backwardkillword,

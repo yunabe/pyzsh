@@ -310,6 +310,39 @@ gosmacstransposechars(UNUSED(char **args))
 
 /**/
 int
+switchcmdmode(char **args)
+{
+  int i;
+  int pos = -1;
+  for (i = 0; i < zlell; ++i) {
+    if (zleline[i] == ZWC(' ')) {
+      continue;
+    }
+    if (zleline[i] == ZWC('|') && pos == -1) {
+      pos = i;
+      continue;
+    }
+    break;
+  }
+  if (pos != -1) {
+    int cs = zlecs;
+    int mult = zmult;
+    zlecs = pos;
+    zmult = i - pos;
+    deletechar(args);
+    zmult = mult;
+    zlecs = cs - (i - pos);
+  } else {
+    int cs = zlecs;
+    zlecs = i;
+    doinsert(ZWS("| "), 2);
+    zlecs = cs + 2;
+  }
+  return 0;
+}
+
+/**/
+int
 transposechars(UNUSED(char **args))
 {
     int ct;
