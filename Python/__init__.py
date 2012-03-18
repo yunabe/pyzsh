@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from StringIO import StringIO
 
@@ -28,11 +29,25 @@ def scan():
   scanner = ZshScanner()
   return scanner.scan()
 
-def run():
-  cmd = scan()
-  if cmd.startswith(':'):
-    print eval(cmd[1:])
+CMD_PATTERN = re.compile(r'^(\s*)\|(\s*)')
+
+def rewrite(cmd):
+  out = []
+  for line in cmd.split('\n'):
+    if not line:
+      continue
+    m = CMD_PATTERN.match(line)
+    if m:
+      out.append('%szsh.pysh.run(%s, globals(), locals())' % (
+          m.group(1), `line[m.end(0):]`))
+    else:
+      out.append(line)
+  return '\n'.join(out)
+
+def command():
+  cmd = scan().strip()
+  cmd = rewrite(cmd)
+  if not cmd:
+    return None
   else:
-    os.system(cmd)
-  sys.stderr.flush()
-  sys.stdout.flush()
+    return cmd

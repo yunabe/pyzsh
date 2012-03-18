@@ -230,7 +230,13 @@ python_loop(int toplevel, int justonce) {
     intr();
     lexinit();
 
-    PyRun_SimpleString("import zsh;zsh.run()");
+    PyObject* zshmodule = PyImport_ImportModule("zsh");
+    PyObject* command = PyObject_CallMethod(zshmodule, "command", NULL);
+    if (command != Py_None) {
+      PyRun_SimpleString(PyString_AsString(command));
+    }
+    Py_XDECREF(command);
+    Py_XDECREF(zshmodule);
 
     hend(NULL);
     if (lexstop && !errflag) {
@@ -1551,6 +1557,7 @@ zsh_main(UNUSED(int argc), char **argv)
     setpythonpath();  // Must be called before Py_Initialize.
     Py_Initialize();
     init_native();
+    PyRun_SimpleString("import zsh.pysh;");
     char **t, *runscript = NULL;
     int t0;
 #ifdef USE_LOCALE
