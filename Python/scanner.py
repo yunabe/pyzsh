@@ -24,26 +24,32 @@ class Scanner(object):
       pass
     return self.writer.getvalue()
 
+  def expectIndent(self):
+      pass
+
   def __scan(self):
     first = True
-    indent = False
+    indent = 0
     inblock = False
     while True:
       c = self.getc()
       if first:
-        first = False
         if c == ' ':
-          indent = True
+          indent += 1
+        else:
+          first = False
 
       if c == ':':
         c = self.getc()
         if c == '\n':
+          self.expectIndent(indent + 2)
           first = True
-          indent = False
+          indent = 0
           inblock = True
       elif c == '\n':
-        if inblock and indent:
+        self.expectIndent(indent if inblock else 0)
+        if inblock and indent > 0:
           first = True
-          indent = False
+          indent = 0
         else:
           break

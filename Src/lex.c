@@ -66,6 +66,11 @@ mod_export int lexstop;
  
 /**/
 mod_export int isfirstln;
+
+/* Current indent width. */
+ 
+/**/
+mod_export int curindentwidth;
  
 /* if != 0, this is the first char of the command (not including white space) */
  

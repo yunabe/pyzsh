@@ -5,6 +5,7 @@
 int lexstop;
 int errflag;
 int isfirstln;
+int curindentwidth;
 
 int hgetc(void);
 void closedumps(void);

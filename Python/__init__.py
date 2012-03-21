@@ -1,4 +1,5 @@
 import os
+import parser
 import re
 import sys
 from StringIO import StringIO
@@ -22,8 +23,12 @@ class ZshScanner(zsh.scanner.Scanner):
       if self.first:
         # disable print prompt.
         zsh.native.cvar.isfirstln = 0
+        zsh.native.cvar.curindentwidth = 0
         self.first = False
       return c
+
+  def expectIndent(self, indent):
+    zsh.native.cvar.curindentwidth = indent
 
 def scan():
   scanner = ZshScanner()

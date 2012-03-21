@@ -1108,6 +1108,7 @@ char *
 zleread(char **lp, char **rp, int flags, int context)
 {
     char *s;
+    int index;
     int old_errno = errno;
     int tmout = getiparam("TMOUT");
 
@@ -1171,9 +1172,18 @@ zleread(char **lp, char **rp, int flags, int context)
     zlecontext = context;
     histline = curhist;
     undoing = 1;
-    zleline = (ZLE_STRING_T)zalloc(((linesz = 256) + 2) * ZLE_CHAR_SIZE);
-    *zleline = ZWC('\0');
+    linesz = 256;
+    if (curindentwidth > linesz) {
+      linesz = curindentwidth;
+    }
+    zleline = (ZLE_STRING_T)zalloc(((linesz) + 2) * ZLE_CHAR_SIZE);
+    for (index = 0; index < curindentwidth; ++index) {
+      zleline[index] = ' ';
+    }
+    zleline[curindentwidth] = '\0';
     virangeflag = lastcmd = done = zlecs = zlell = mark = 0;
+    zlell = curindentwidth;
+    zlecs = curindentwidth;
     vichgflag = 0;
     viinsbegin = 0;
     statusline = NULL;
