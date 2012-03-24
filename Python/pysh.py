@@ -507,9 +507,12 @@ class Evaluator(object):
       else:
         raise Exception('Unexpected token: %s' % tok[0])
     if len(values) > 1:
-      return ''.join(map(str, values))
+      result = ''.join(map(str, values))
     else:
-      return values[0]
+      result = values[0]
+    if isinstance(result, str):
+      result = os.path.expanduser(result)
+    return result
 
   def execute(self, globals, locals):
     pids = {}
@@ -622,7 +625,11 @@ class Evaluator(object):
             os.dup2(f.fileno(), redirect[1])
         # TODO(yunabe): quit a child process if execvp fails.
         str_args = map(str, args)
-        os.execvp(str_args[0], str_args)
+        try:
+          os.execvp(str_args[0], str_args)
+        except Exception, e:
+          print >> sys.stderr, e
+          os._exit(1)
 
     if pycmd_stack:
       # pycmd is the last command.
@@ -679,12 +686,19 @@ class pycmd_readcsv(object):
     return csv.reader(input)
 
 
+class pycmd_cd(object):
+  def process(self, args, input):
+    assert len(args) == 2
+    os.chdir(args[1])
+
+
 register_pycmd('send', pycmd_send())
 register_pycmd('recv', pycmd_recv())
 register_pycmd('map', pycmd_map())
 register_pycmd('filter', pycmd_filter())
 register_pycmd('reduce', pycmd_reduce())
 register_pycmd('readcsv', pycmd_readcsv())
+register_pycmd('cd', pycmd_cd())
 
 
 def run(cmd_str, globals, locals):
