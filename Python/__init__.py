@@ -43,7 +43,8 @@ def rewrite(cmd):
       continue
     m = CMD_PATTERN.match(line)
     if m:
-      out.append('%szsh.pysh.run(%s, globals(), locals())' % (
+      out.append('%szsh.pysh.run(%s, globals(), locals(),'
+                 'alias_map=zsh.alias_map)' % (
           m.group(1), `line[m.end(0):]`))
     else:
       out.append(line)
@@ -56,3 +57,15 @@ def command():
     return None
   else:
     return cmd
+
+
+class AliasMap(object):
+  def __contains__(self, key):
+    result = zsh.native.pyzsh_lookupalias(key)
+    return result is not None
+
+  def __getitem__(self, key):
+    return (zsh.native.pyzsh_lookupalias(key),
+            zsh.native.pyzsh_isaliasglobal(key) != 0)
+
+alias_map = AliasMap()
