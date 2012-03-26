@@ -5,6 +5,18 @@ from StringIO import StringIO
 class Scanner(object):
   def __init__(self):
     self.writer = None
+    self.indent_stack = []
+
+  def push_indent(self, indent):
+    while self.indent_stack and self.indent_stack[-1] >= indent:
+      self.indent_stack.pop()
+    self.indent_stack.append(indent)
+    self.expectIndent(indent)
+
+  def pop_indent(self):
+    if self.indent_stack:
+      self.indent_stack.pop()
+    self.expectIndent(self.indent_stack[-1] if self.indent_stack else 0)
 
   def read(self):
     return sys.stdin.read(1)
@@ -36,18 +48,23 @@ class Scanner(object):
       if first:
         if c == ' ':
           indent += 1
-        else:
+        elif c != '\n':
           first = False
 
       if c == ':':
         c = self.getc()
         if c == '\n':
-          self.expectIndent(indent + 2)
+          self.push_indent(indent + 2)
           first = True
           indent = 0
           inblock = True
       elif c == '\n':
-        self.expectIndent(indent if inblock else 0)
+        if inblock:
+          if first:
+            self.pop_indent()
+          else:
+            self.push_indent(indent)
+            
         if inblock and indent > 0:
           first = True
           indent = 0
