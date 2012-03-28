@@ -6,6 +6,7 @@ from StringIO import StringIO
 
 import zsh.native
 from zsh.native import hgetc
+import zsh.pysh
 import zsh.scanner
 
 
@@ -69,3 +70,10 @@ class AliasMap(object):
             zsh.native.pyzsh_isaliasglobal(key) != 0)
 
 alias_map = AliasMap()
+
+class pyzsh_cd(object):
+  def process(self, args, input):
+    zsh.native.pyzsh_execbuiltin('cd', map(str, args))
+    return ()
+
+zsh.pysh.register_pycmd('cd', pyzsh_cd())

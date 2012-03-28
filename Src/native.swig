@@ -17,10 +17,38 @@ static int pyzsh_isaliasglobal(const char* text) {
     return 0;
   }
 }
+
+static int pyzsh_execbuiltin(const char* cmd, LinkList args) {
+  HashNode hn = (HashNode) builtintab->getnode(builtintab, cmd);
+  if (hn) {
+    return execbuiltin(args, (Builtin) hn);
+  } else {
+    return -1;
+  }
+}
+
 %}
+
+%typemap(in) LinkList {
+  $1 = newlinklist();
+  PyObject* iter = PyObject_GetIter($input);
+  if (!iter) {
+    PyErr_Clear();
+  } else {
+    PyObject* item;
+    while (item = PyIter_Next(iter)) {
+      if (PyString_Check(item)) {
+        addlinknode($1, PyString_AsString(item));
+      }
+      Py_DECREF(item);
+    }
+    Py_DECREF(iter);
+  }
+}
 
 const char* pyzsh_lookupalias(const char* text);
 int pyzsh_isaliasglobal(const char* text);
+int pyzsh_execbuiltin(const char* cmd, LinkList args);
 
 int lexstop;
 int errflag;
