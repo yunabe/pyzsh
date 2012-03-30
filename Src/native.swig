@@ -59,3 +59,6 @@ int hgetc(void);
 void closedumps(void);
 void cmdpush(int cmdtok);
 void cmdpop(void);
+
+void hwbegin(int offset);
+void hwend(void);

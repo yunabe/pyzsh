@@ -20,7 +20,13 @@ class ZshScanner(zsh.scanner.Scanner):
     if zsh.native.cvar.lexstop:
       raise StopIteration()
     else:
+      # Special hack to store a command (chline) to history. This hack is
+      # much better than setting chwordpos >= 4 (it causes segfault
+      # with timing error.) See hend in hist.c.
+      # TODO: Reduce calls of hwbegin and hwend.
+      zsh.native.hwbegin(0)
       c = chr(hgetc())
+      zsh.native.hwend()
       if self.first:
         # disable print prompt.
         zsh.native.cvar.isfirstln = 0

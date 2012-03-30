@@ -239,8 +239,6 @@ python_loop(int toplevel, int justonce) {
     Py_XDECREF(command);
     Py_XDECREF(zshmodule);
 
-    // Special hack to store a command (chline) to history (See hend in hist.c).
-    chwordpos = 4;
     hend(NULL);
     if (lexstop && !errflag) {
       // errflag is true when ^C is pressed.
