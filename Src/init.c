@@ -233,7 +233,9 @@ python_loop(int toplevel, int justonce) {
     PyObject* zshmodule = PyImport_ImportModule("zsh");
     PyObject* command = PyObject_CallMethod(zshmodule, "command", NULL);
     if (command != Py_None) {
+      child_block();  // prevent signal handler from cathcing SIGCHLD.
       PyRun_SimpleString(PyString_AsString(command));
+      child_unblock();
       PyRun_SimpleString("import sys;sys.stdout.flush();sys.stderr.flush()");
     }
     Py_XDECREF(command);
