@@ -29,6 +29,8 @@
 
 #include "zsh.mdh"
 #include "signals.pro"
+
+#include <Python.h>
  
 /* Array describing the state of each signal: an element contains *
  * 0 for the default action or some ZSIG_* flags ored together.   */
@@ -600,6 +602,7 @@ zhandler(int sig)
         break;
  
     case SIGINT:
+        PyErr_SetInterrupt();
         if (!handletrap(SIGINT)) {
 	    if ((isset(PRIVILEGED) || isset(RESTRICTED)) &&
 		isset(INTERACTIVE) && noerrexit < 0)
