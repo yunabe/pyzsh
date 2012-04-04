@@ -37,6 +37,9 @@ class ZshScanner(zsh.scanner.Scanner):
   def expectIndent(self, indent):
     zsh.native.cvar.curindentwidth = indent
 
+  def expectShellMode(self, expectation):
+    zsh.native.cvar.expect_shellmode = 1 if expectation else 0
+
 def scan():
   scanner = ZshScanner()
   return scanner.scan()
@@ -50,9 +53,11 @@ def rewrite(cmd):
       continue
     m = CMD_PATTERN.match(line)
     if m:
-      out.append('%szsh.pysh.run(%s, globals(), locals(),'
-                 'alias_map=zsh.alias_map)' % (
-          m.group(1), `line[m.end(0):]`))
+      body = line[m.end(0):]
+      if body:
+        out.append('%szsh.pysh.run(%s, globals(), locals(),'
+                   'alias_map=zsh.alias_map)' % (
+            m.group(1), `body`))
     else:
       out.append(line)
   return '\n'.join(out)

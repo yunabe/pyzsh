@@ -54,6 +54,7 @@ int lexstop;
 int errflag;
 int isfirstln;
 int curindentwidth;
+int expect_shellmode;
 
 int hgetc(void);
 void closedumps(void);

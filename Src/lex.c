@@ -71,7 +71,10 @@ mod_export int isfirstln;
  
 /**/
 mod_export int curindentwidth;
- 
+
+/**/
+mod_export int expect_shellmode;
+
 /* if != 0, this is the first char of the command (not including white space) */
  
 /**/

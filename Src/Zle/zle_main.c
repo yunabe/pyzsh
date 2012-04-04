@@ -1173,17 +1173,24 @@ zleread(char **lp, char **rp, int flags, int context)
     histline = curhist;
     undoing = 1;
     linesz = 256;
-    if (curindentwidth > linesz) {
-      linesz = curindentwidth;
+    int default_content_len = curindentwidth;
+    if (expect_shellmode) {
+      default_content_len += 2;
+    }
+    if (default_content_len > linesz) {
+      linesz = default_content_len;
     }
     zleline = (ZLE_STRING_T)zalloc(((linesz) + 2) * ZLE_CHAR_SIZE);
     for (index = 0; index < curindentwidth; ++index) {
       zleline[index] = ' ';
     }
-    zleline[curindentwidth] = '\0';
-    virangeflag = lastcmd = done = zlecs = zlell = mark = 0;
-    zlell = curindentwidth;
-    zlecs = curindentwidth;
+    if (expect_shellmode) {
+      zleline[curindentwidth] = '|';
+      zleline[curindentwidth + 1] = ' ';
+    }
+    zleline[default_content_len] = '\0';
+    virangeflag = lastcmd = done = mark = 0;
+    zlecs = zlell = default_content_len;
     vichgflag = 0;
     viinsbegin = 0;
     statusline = NULL;

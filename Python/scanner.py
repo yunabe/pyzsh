@@ -1,5 +1,11 @@
+import re
 import sys
 from StringIO import StringIO
+
+
+INDENT_PATTERN = re.compile(r'^(\s*)')
+BLOCK_START_PATTERN = re.compile(r'^.*:\s*(#.*)?$')
+EMPTY_LINE_PATTERN = re.compile(r'^(\|?\s*)(#.*)?$')
 
 
 class Scanner(object):
@@ -37,36 +43,40 @@ class Scanner(object):
     return self.writer.getvalue()
 
   def expectIndent(self):
-      pass
+    pass
 
-  def __scan(self):
-    first = True
-    indent = 0
-    inblock = False
+  def expectShellMode(self, expectation):
+    pass
+
+  def scanLine(self):
+    line = StringIO()
     while True:
       c = self.getc()
-      if first:
-        if c == ' ':
-          indent += 1
-        elif c != '\n':
-          first = False
+      if c == '\n':
+        break
+      line.write(c)
+    return line.getvalue()
 
-      if c == ':':
-        c = self.getc()
-        if c == '\n':
-          self.push_indent(indent + 2)
-          first = True
-          indent = 0
-          inblock = True
-      elif c == '\n':
-        if inblock:
-          if first:
-            self.pop_indent()
-          else:
-            self.push_indent(indent)
-            
-        if inblock and indent > 0:
-          first = True
-          indent = 0
-        else:
-          break
+  def __scan(self):
+    self.expectIndent(0)  # reset indent position
+    inblock = False
+    while True:
+      line = self.scanLine()
+      indent = INDENT_PATTERN.match(line).end()
+      line = line[indent:]
+      m = BLOCK_START_PATTERN.match(line)
+      if m:
+        self.push_indent(indent + 2)
+        inblock = True
+        continue
+
+      is_empty = EMPTY_LINE_PATTERN.match(line)
+      if not is_empty or not inblock:
+        # don't change mode if line is in block and empty.
+        self.expectShellMode(line.startswith('|'))
+      if not inblock or indent == 0:
+        break
+      if is_empty:
+        self.pop_indent()
+      else:
+        self.push_indent(indent)
