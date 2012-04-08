@@ -693,7 +693,7 @@ docomplete(int lst)
 	    zlemetacs = ocs;
 	    popheap();
 	    if (shellsufixpos != -1) {
-		zlemetaline[shellsufixpos] = '|';
+		zlemetaline[shellsufixpos] = '>';
 	    }
 	    unmetafy_line();
 	    zsfree(s);
@@ -886,7 +886,7 @@ docomplete(int lst)
     dat[1] = ret;
     runhookdef(AFTERCOMPLETEHOOK, (void *) dat);
     if (shellsufixpos != -1) {
-      zlemetaline[shellsufixpos] = '|';
+      zlemetaline[shellsufixpos] = '>';
     }
     unmetafy_line();
 

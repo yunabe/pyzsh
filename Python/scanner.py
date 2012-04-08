@@ -5,7 +5,7 @@ from StringIO import StringIO
 
 INDENT_PATTERN = re.compile(r'^(\s*)')
 BLOCK_START_PATTERN = re.compile(r'^.*:\s*(#.*)?$')
-EMPTY_LINE_PATTERN = re.compile(r'^(\|?\s*)(#.*)?$')
+EMPTY_LINE_PATTERN = re.compile(r'^(>?\s*)(#.*)?$')
 
 
 class Scanner(object):
@@ -73,7 +73,7 @@ class Scanner(object):
       is_empty = EMPTY_LINE_PATTERN.match(line)
       if not is_empty or not inblock:
         # don't change mode if line is in block and empty.
-        self.expectShellMode(line.startswith('|'))
+        self.expectShellMode(line.startswith('>'))
       if not inblock or indent == 0:
         break
       if is_empty:

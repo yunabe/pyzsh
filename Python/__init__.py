@@ -44,7 +44,7 @@ def scan():
   scanner = ZshScanner()
   return scanner.scan()
 
-CMD_PATTERN = re.compile(r'^(\s*)\|(\s*)')
+CMD_PATTERN = re.compile(r'^(\s*)>(\s*)')
 
 def rewrite(cmd):
   out = []

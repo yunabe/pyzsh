@@ -1185,7 +1185,7 @@ zleread(char **lp, char **rp, int flags, int context)
       zleline[index] = ' ';
     }
     if (expect_shellmode) {
-      zleline[curindentwidth] = '|';
+      zleline[curindentwidth] = '>';
       zleline[curindentwidth + 1] = ' ';
     }
     zleline[default_content_len] = '\0';

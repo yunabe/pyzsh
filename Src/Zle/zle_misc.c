@@ -320,7 +320,7 @@ isinshellmode(int* suffixpos, int* bodypos) {
     }
     if (*suffixpos == -1) {
       *suffixpos = i;
-      if (zleline[i] != ZWC('|')) {
+      if (zleline[i] != ZWC('>')) {
         *bodypos = i;
         return 0;
       }
@@ -356,7 +356,7 @@ switchcmdmode(char **args)
   } else {
     int cs = zlecs;
     zlecs = bodypos;
-    doinsert(ZWS("| "), 2);
+    doinsert(ZWS("> "), 2);
     zlecs = cs + 2;
   }
   return 0;
