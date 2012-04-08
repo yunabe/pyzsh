@@ -633,7 +633,15 @@ docomplete(int lst)
 	return 0;
     }
 
+    int shellsufixpos, dummy;
+    // Store the position of prefix for shell mode in pysh.
+    if (!isinshellmode(&shellsufixpos, &dummy)) {
+        shellsufixpos = -1;
+    }
     metafy_line();
+    if (shellsufixpos != -1) {
+        zlemetaline[shellsufixpos] = ' ';
+    }
 
     ocs = zlemetacs;
     origline = dupstring(zlemetaline);
@@ -684,6 +692,9 @@ docomplete(int lst)
 	    zlemetall = strlen(zlemetaline);
 	    zlemetacs = ocs;
 	    popheap();
+	    if (shellsufixpos != -1) {
+		zlemetaline[shellsufixpos] = '|';
+	    }
 	    unmetafy_line();
 	    zsfree(s);
 	    active = 0;
@@ -874,6 +885,9 @@ docomplete(int lst)
     dat[0] = lst;
     dat[1] = ret;
     runhookdef(AFTERCOMPLETEHOOK, (void *) dat);
+    if (shellsufixpos != -1) {
+      zlemetaline[shellsufixpos] = '|';
+    }
     unmetafy_line();
 
     active = 0;

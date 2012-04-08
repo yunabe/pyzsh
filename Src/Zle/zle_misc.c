@@ -310,31 +310,52 @@ gosmacstransposechars(UNUSED(char **args))
 
 /**/
 int
-switchcmdmode(char **args)
-{
+isinshellmode(int* suffixpos, int* bodypos) {
   int i;
-  int pos = -1;
+  *suffixpos = -1;
+  *bodypos = -1;
   for (i = 0; i < zlell; ++i) {
     if (zleline[i] == ZWC(' ')) {
       continue;
     }
-    if (zleline[i] == ZWC('|') && pos == -1) {
-      pos = i;
-      continue;
+    if (*suffixpos == -1) {
+      *suffixpos = i;
+      if (zleline[i] != ZWC('|')) {
+        *bodypos = i;
+        return 0;
+      }
+    } else {
+      *bodypos = i;
+      return 1;
     }
-    break;
   }
-  if (pos != -1) {
+  if (*suffixpos == -1) {
+    *suffixpos = i;
+    *bodypos = i;
+    return 0;
+  } else {
+    *bodypos = i;
+    return 1;
+  }
+}
+
+/**/
+int
+switchcmdmode(char **args)
+{
+  int suffixpos, bodypos;
+  int rc = isinshellmode(&suffixpos, &bodypos);
+  if (isinshellmode(&suffixpos, &bodypos)) {
     int cs = zlecs;
     int mult = zmult;
-    zlecs = pos;
-    zmult = i - pos;
+    zlecs = suffixpos;
+    zmult = bodypos - suffixpos;
     deletechar(args);
     zmult = mult;
-    zlecs = cs - (i - pos);
+    zlecs = cs - (bodypos - suffixpos);
   } else {
     int cs = zlecs;
-    zlecs = i;
+    zlecs = bodypos;
     doinsert(ZWS("| "), 2);
     zlecs = cs + 2;
   }
