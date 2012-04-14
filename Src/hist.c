@@ -195,6 +195,10 @@ int hlinesz;
  
 static zlong defev;
 
+/* The prefix of python command in hist file. *
+ *  This shouldn't start with ':'.            */
+static const char PYHISTPREFIX[] = "py:";
+
 /* Remember the last line in the history file so we can find it again. */
 static struct histfile_stats {
     char *text;
@@ -2295,7 +2299,14 @@ readhistfile(char *fn, int err, int readflags)
 	 || (hist_ignore_all_dups && newflags & hist_skip_flags))
 	    newflags |= HIST_MAKEUNIQUE;
 	while (fpos = ftell(in), (l = readhistline(0, &buf, &bufsiz, in))) {
-	    char *pt = buf;
+	    char *pt;
+	    int buflen = strlen(buf);
+	    if (bufsiz < buflen + 1 + 2) {
+		// Reserve space for shell mode prefix "> ".
+		bufsiz = buflen + 1 + 2;
+		buf = zrealloc(buf, bufsiz);
+	    }
+	    pt = buf;
 
 	    if (l < 0) {
 		zerr("corrupt history file %s", fn);
@@ -2344,6 +2355,16 @@ readhistfile(char *fn, int err, int readflags)
 		lasthist.stim = stim;
 	    }
 
+	    if (strstr(pt, PYHISTPREFIX) == pt) {
+		// Remove python mode prefix.
+		memmove(pt, pt + sizeof(PYHISTPREFIX) - 1,
+			strlen(pt) + 1 - (sizeof(PYHISTPREFIX) - 1));
+	    } else {
+		// Add shell mode prefix.
+		memmove(pt + 2, pt, strlen(pt) + 1);
+		pt[0] = '>';
+		pt[1] = ' ';
+	    }
 	    he = prepnexthistent();
 	    he->node.nam = ztrdup(pt);
 	    he->node.flags = newflags;
@@ -2537,11 +2558,22 @@ savehistfile(char *fn, int err, int writeflags)
 		histfile_linect++;
 	    }
 	    t = start = he->node.nam;
+	    int shellmode = 0;
+	    if ((*t == '>')) {
+		shellmode = 1;
+		t++;
+		while (*t == ' ') {
+		    t++;
+		}
+	    }
 	    if (extended_history) {
 		ret = fprintf(out, ": %ld:%ld;", (long)he->stim,
 			      he->ftim? (long)(he->ftim - he->stim) : 0L);
-	    } else if (*t == ':')
+	    } else if (shellmode && *t == ':')
 		ret = fputc('\\', out);
+	    if (ret >= 0 && !shellmode) {
+		fprintf(out, PYHISTPREFIX);
+	    }
 
 	    for (; ret >= 0 && *t; t++) {
 		if (*t == '\n')
