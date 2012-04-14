@@ -308,6 +308,7 @@ beginningofline(char **args)
     }
     while (n--) {
 	int pos;
+	int head, shellprefix, body;
 
 	if (zlecs == 0)
 	    return 0;
@@ -320,8 +321,31 @@ beginningofline(char **args)
 	}
 
 	/* works OK with combining chars since '\n' must be on its own */
-	while (zlecs && zleline[zlecs - 1] != '\n')
-	    zlecs--;
+	/* Fisrt, find the head of line */
+	head = zlecs;
+	while (head && zleline[head - 1] != '\n') {
+	    head--;
+	}
+	shellprefix = body = -1;
+	for (pos = head; pos < zlecs; ++pos) {
+	    if (zleline[pos] == ' ') {
+		continue;
+	    }
+	    if (shellprefix == -1 && zleline[pos] == '>') {
+		shellprefix = pos;
+	    } else {
+		body = pos;
+		break;
+	    }
+	}
+	if (body != -1) {
+	    zlecs = body;
+	} else if (shellprefix != -1) {
+	    zlecs = shellprefix;
+	} else {
+	    zlecs = head;
+	}
+
     }
     return 0;
 }
