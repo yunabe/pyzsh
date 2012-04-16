@@ -233,6 +233,9 @@ python_loop(int toplevel, int justonce) {
 
     PyObject* zshmodule = PyImport_ImportModule("zsh");
     PyObject* command = PyObject_CallMethod(zshmodule, "command", NULL);
+    // We need to call hend before we invoke external programs because
+    // hend reset tty setting (w/ settty) that is set in hgetc.
+    hend(NULL);
     if (command == NULL) {
       PyErr_Print();
     } else if (command != Py_None) {
@@ -244,7 +247,6 @@ python_loop(int toplevel, int justonce) {
     Py_XDECREF(command);
     Py_XDECREF(zshmodule);
 
-    hend(NULL);
     if (lexstop && !errflag) {
       // errflag is true when ^C is pressed.
       break;
