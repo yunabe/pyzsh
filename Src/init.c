@@ -219,7 +219,7 @@ loop(int toplevel, int justonce)
 
 enum loop_return
 python_loop(int toplevel, int justonce) {
-  expect_shellmode = 0;
+  expect_shellmode = 1;
   pushheap();
   if (!toplevel) {
     lexsave();
