@@ -27,6 +27,10 @@ static int pyzsh_execbuiltin(const char* cmd, LinkList args) {
   }
 }
 
+static void pyzsh_child_unblock(void) {
+  child_unblock();
+}
+
 %}
 
 %typemap(in) LinkList {
@@ -63,3 +67,5 @@ void cmdpop(void);
 
 void hwbegin(int offset);
 void hwend(void);
+
+void pyzsh_child_unblock(void);

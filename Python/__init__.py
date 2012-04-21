@@ -55,8 +55,7 @@ def rewrite(cmd):
     if m:
       body = line[m.end(0):]
       if body:
-        out.append('%szsh.pysh.run(%s, globals(), locals(),'
-                   'alias_map=zsh.alias_map)' % (
+        out.append('%szsh.run(%s, globals(), locals())' % (
             m.group(1), `body`))
     else:
       out.append(line)
@@ -71,6 +70,12 @@ def command():
     return cmd
 
 
+class Evaluator(zsh.pysh.Evaluator):
+  def __after_folk(self, pid):
+    if pid == 0:
+      zsh.native.pyzsh_child_unblock()
+
+
 class AliasMap(object):
   def __contains__(self, key):
     result = zsh.native.pyzsh_lookupalias(key)
@@ -80,7 +85,17 @@ class AliasMap(object):
     return (zsh.native.pyzsh_lookupalias(key),
             zsh.native.pyzsh_isaliasglobal(key) != 0)
 
+
 alias_map = AliasMap()
+
+
+def run(cmd_str, globals, locals):
+  tok = zsh.pysh.Tokenizer(cmd_str, alias_map=alias_map)
+  parser = zsh.pysh.Parser(tok)
+  evaluator = Evaluator(parser)
+  evaluator.execute(globals, locals)
+  return evaluator.rc()
+
 
 class pyzsh_cd(object):
   def process(self, args, input):
