@@ -753,7 +753,6 @@ class Evaluator(object):
         str_args = []
         for arg in args:
           str_args.extend(self.convertToCmdArgs(arg))
-        print args, ' == ',  str_args
         try:
           os.execvp(str_args[0], str_args)
         except Exception, e:
@@ -832,8 +831,8 @@ register_pycmd('readcsv', pycmd_readcsv())
 register_pycmd('cd', pycmd_cd())
 
 
-def run(cmd_str, globals, locals):
-  tok = Tokenizer(cmd_str)
+def run(cmd_str, globals, locals, alias_map=None):
+  tok = Tokenizer(cmd_str, alias_map)
   parser = Parser(tok)
   evaluator = Evaluator(parser)
   evaluator.execute(globals, locals)
