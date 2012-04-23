@@ -83,8 +83,11 @@ def read_and_rewrite(path):
     return None
 
 def command():
-  cmd = scan().strip()
-  cmd = rewrite(cmd, True)
+  try:
+    cmd = scan().strip()
+    cmd = rewrite(cmd, True)
+  except KeyboardInterrupt:
+    cmd = None
   if not cmd:
     return None
   else:
