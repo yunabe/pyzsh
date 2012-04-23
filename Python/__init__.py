@@ -45,8 +45,16 @@ def scan():
   return scanner.scan()
 
 CMD_PATTERN = re.compile(r'^(\s*)>(\s*)')
+INDENT_PATTERN = re.compile(r'^(\s*)')
 
-def rewrite(cmd):
+def is_python_expr(line):
+  try:
+    parser.expr(line)
+    return True
+  except:
+    return False
+
+def rewrite(cmd, interactive):
   out = []
   for line in cmd.split('\n'):
     if not line:
@@ -58,18 +66,25 @@ def rewrite(cmd):
         out.append('%szsh.run(%s, globals(), locals())' % (
             m.group(1), `body`))
     else:
-      out.append(line)
+      indent = INDENT_PATTERN.match(line).group(0)
+      line = line[len(indent):]
+      if interactive and is_python_expr(line):
+        # print expr if intaractive is True.
+        formatter = '%sprint %s'
+      else:
+        formatter = '%s%s'
+      out.append(formatter % (indent, line))
   return '\n'.join(out)
 
 def read_and_rewrite(path):
   try:
-    return rewrite(file(path, 'r').read())
+    return rewrite(file(path, 'r').read(), False)
   except:
     return None
 
 def command():
   cmd = scan().strip()
-  cmd = rewrite(cmd)
+  cmd = rewrite(cmd, True)
   if not cmd:
     return None
   else:
