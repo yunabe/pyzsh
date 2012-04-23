@@ -1373,10 +1373,19 @@ python_sourcehome(char *s)
 	/* Let source() complain if path is too long */
 	VARARR(char, buf, strlen(h) + strlen(s) + 2);
 	sprintf(buf, "%s/%s", h, s);
+
+  PyObject* zshmodule = PyImport_ImportModule("zsh");
+  PyObject* content =
+    PyObject_CallMethod(zshmodule, "read_and_rewrite", "s", buf);
+  if (content == NULL) {
+    PyErr_Print();
+  } else if (content != Py_None) {
+    PyRun_SimpleString(PyString_AsString(content));
+    PyRun_SimpleString("import sys;sys.stdout.flush();sys.stderr.flush()");
+  }
+  Py_XDECREF(content);
+  Py_XDECREF(zshmodule);
 	unqueue_signals();
-	if ((fp = fopen(buf, "r")) != NULL) {
-		PyRun_SimpleFileEx(fp, buf, 1 /* closeit */);
-	}
     }
 }
 

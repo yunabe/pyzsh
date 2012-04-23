@@ -61,6 +61,12 @@ def rewrite(cmd):
       out.append(line)
   return '\n'.join(out)
 
+def read_and_rewrite(path):
+  try:
+    return rewrite(file(path, 'r').read())
+  except:
+    return None
+
 def command():
   cmd = scan().strip()
   cmd = rewrite(cmd)
