@@ -626,6 +626,7 @@ CURSES_KEYS_H
 ZSH_CURSES_H
 ERRNO_H
 SIGNAL_H
+PYTHON_VERSION
 PCRECONF
 ANSI2KNR
 TEXI2HTML
@@ -6132,6 +6133,91 @@ _ACEOF
   LIBS="-lrt $LIBS"
 
 fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Py_Initialize in -lpython2.7" >&5
+$as_echo_n "checking for Py_Initialize in -lpython2.7... " >&6; }
+if ${ac_cv_lib_python2_7_Py_Initialize+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpython2.7  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char Py_Initialize ();
+int
+main ()
+{
+return Py_Initialize ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_python2_7_Py_Initialize=yes
+else
+  ac_cv_lib_python2_7_Py_Initialize=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_python2_7_Py_Initialize" >&5
+$as_echo "$ac_cv_lib_python2_7_Py_Initialize" >&6; }
+if test "x$ac_cv_lib_python2_7_Py_Initialize" = xyes; then :
+  LIBS="-lpython2.7  $LIBS";PYTHON_VERSION="2.7"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Py_Initialize in -lpython2.6" >&5
+$as_echo_n "checking for Py_Initialize in -lpython2.6... " >&6; }
+if ${ac_cv_lib_python2_6_Py_Initialize+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpython2.6  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char Py_Initialize ();
+int
+main ()
+{
+return Py_Initialize ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_python2_6_Py_Initialize=yes
+else
+  ac_cv_lib_python2_6_Py_Initialize=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_python2_6_Py_Initialize" >&5
+$as_echo "$ac_cv_lib_python2_6_Py_Initialize" >&6; }
+if test "x$ac_cv_lib_python2_6_Py_Initialize" = xyes; then :
+  LIBS="-lpython2.6  $LIBS";PYTHON_VERSION="2.6"
+else
+  as_fn_error $? "unable to find Python library." "$LINENO" 5
+fi
+
+fi
+
 
 
 if test x$ac_cv_header_ncurses_h = xyes || test x$ac_cv_header_ncurses_ncurses_h = xyes || test x$ac_cv_header_ncursesw_ncurses_h = xyes; then

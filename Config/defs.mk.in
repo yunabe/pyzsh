@@ -65,11 +65,12 @@ DLCFLAGS        = @DLCFLAGS@
 DLLDFLAGS       = @DLLDFLAGS@
 LIBLDFLAGS      = @LIBLDFLAGS@
 EXELDFLAGS      = @EXELDFLAGS@
-LIBS            = @LIBS@ -lpython2.6
+LIBS            = @LIBS@
 DL_EXT          = @DL_EXT@
 DLLD            = @DLLD@
 EXPOPT          = @EXPOPT@
 IMPOPT          = @IMPOPT@
+PYTHON_VERSION  = @PYTHON_VERSION@
 
 # utilities
 AWK             = @AWK@

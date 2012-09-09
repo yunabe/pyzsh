@@ -695,6 +695,15 @@ AC_CHECK_LIB(m, pow)
 
 AC_CHECK_LIB(rt, clock_gettime)
 
+AC_CHECK_LIB(python2.7,
+             Py_Initialize,
+             [LIBS="-lpython2.7  $LIBS";PYTHON_VERSION="2.7"],
+             [AC_CHECK_LIB(python2.6,
+                           Py_Initialize,
+                           [LIBS="-lpython2.6  $LIBS";PYTHON_VERSION="2.6"],
+                           [AC_MSG_ERROR(unable to find Python library.)])])
+AC_SUBST(PYTHON_VERSION)
+
 dnl Various features of ncurses depend on having the right header
 dnl (the system's own curses.h may well not be good enough).
 dnl So don't search for ncurses unless we found the header.
