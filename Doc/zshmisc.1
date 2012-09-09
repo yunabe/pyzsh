@@ -1,4 +1,4 @@
-.TH "ZSHMISC" "1" "February 22, 2011" "zsh 4\&.3\&.17"
+.TH "ZSHMISC" "1" "July 21, 2012" "zsh 5\&.0\&.0"
 .SH "NAME"
 zshmisc \- everything and then some
 .\" Yodl file: Zsh/grammar.yo
@@ -1931,6 +1931,10 @@ based on ASCII value of their characters\&.
 .TP
 \fIexp1\fP \fB\-eq\fP \fIexp2\fP
 true if \fIexp1\fP is numerically equal to \fIexp2\fP\&.
+Note that for purely numeric comparisons use of the
+\fB((\fP\fI\&.\&.\&.\fP\fB))\fP builtin described in
+the section `ARITHMETIC EVALUATION\&' is more convenient than
+conditional expressions\&.
 .TP
 \fIexp1\fP \fB\-ne\fP \fIexp2\fP
 true if \fIexp1\fP is numerically not equal to \fIexp2\fP\&.

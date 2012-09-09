@@ -1,4 +1,4 @@
-.TH "ZSHCONTRIB" "1" "February 22, 2011" "zsh 4\&.3\&.17"
+.TH "ZSHCONTRIB" "1" "July 21, 2012" "zsh 5\&.0\&.0"
 .SH "NAME"
 zshcontrib \- user contributions to zsh
 .\" Yodl file: Zsh/contrib.yo
@@ -44,7 +44,7 @@ distribution in your home directory, you would use the commands:
 \fBmkdir ~/zsh_help
 cd ~/zsh_help
 man zshall | colcrt \- | \e 
-perl ~/zsh\-4\&.3\&.17/Util/helpfiles\fP
+perl ~/zsh\-5\&.0\&.0/Util/helpfiles\fP
 .fi
 .RE
 .PP
@@ -179,7 +179,7 @@ Run \fBzkbd\fP either as an autoloaded function, or as a shell script:
 .PP
 .RS
 .nf
-\fBzsh \-f ~/zsh\-4\&.3\&.17/Functions/Misc/zkbd\fP
+\fBzsh \-f ~/zsh\-5\&.0\&.0/Functions/Misc/zkbd\fP
 .fi
 .RE
 .PP
@@ -235,7 +235,7 @@ command and redirect the output into a file:
 .PP
 .RS
 .nf
-\fB\&. ~/zsh\-4\&.3\&.17/Util/reporter > zsh\&.report\fP
+\fB\&. ~/zsh\-5\&.0\&.0/Util/reporter > zsh\&.report\fP
 .fi
 .RE
 .PP
@@ -1162,10 +1162,10 @@ In \fBpatch\-format\fP and \fBnopatch\-format\fP these replacements are done:
 .PD 0
 .TP
 \fB%p\fP
-The name of the top\-most applied patch\&.
+The name of the top\-most applied patch (\fBapplied\-string\fP)\&.
 .TP
 \fB%u\fP
-The number of unapplied patches\&.
+The number of unapplied patches (\fBunapplied\-string\fP)\&.
 .TP
 \fB%n\fP
 The number of applied patches\&.
@@ -2016,6 +2016,16 @@ stripping of quotes\&.  Special handling is done between words: the current
 context is examined and if it contains the string \fBback\fP, the word before
 the cursor is considered, else the word after cursor is considered\&. Some
 examples are given below\&.
+.PP
+The style \fBskip\-whitespace\-first\fP is only used with the
+\fBforward\-word\fP widget\&.  If it is set to true, then \fBforward\-word\fP
+skips any non\-word\-characters, followed by any non\-word\-characters:
+this is similar to the behaviour of other word\-orientated widgets,
+and also that used by other editors, however it differs from the
+standard zsh behaviour\&.  When using \fBselect\-word\-style\fP the widget
+is set in the context \fB:zle:*\fP to \fBtrue\fP if the word style is
+\fBbash\fP and \fBfalse\fP otherwise\&.  It may be overridden by setting it in
+the more specific context \fB:zle:forward\-word*\fP\&.
 .PP
 Here are some examples of use of the styles, actually taken from the
 simplified interface in \fBselect\-word\-style\fP:
@@ -4127,11 +4137,11 @@ game\&.
 .RE
 .TP
 \fBzargs\fP [ \fIoption\fP \&.\&.\&. \fB\-\fP\fB\-\fP ] [ \fIinput\fP \&.\&.\&. ] [ \fB\-\fP\fB\-\fP \fIcommand\fP [ \fIarg\fP \&.\&.\&. ] ]
-This function works like GNU xargs, except that instead of reading lines
-of arguments from the standard input, it takes them from the command line\&.
-This is useful because zsh, especially with recursive glob operators,
-often can construct a command line for a shell function that is longer
-than can be accepted by an external command\&.
+This function has a similar purpose to GNU xargs\&.  Instead of
+reading lines of arguments from the standard input, it takes them from
+the command line\&.  This is useful because zsh, especially with recursive
+glob operators, often can construct a command line for a shell function
+that is longer than can be accepted by an external command\&.
 .RS
 .PP
 The \fIoption\fP list represents options of the \fBzargs\fP command itself,
@@ -4174,7 +4184,15 @@ this does \fInot\fP change the end\-of\-options marker\&.  For example, to use
 This is a good choice in that example because no plain file can be named
 `\fB\&.\&.\fP\&', but the best end\-marker depends on the circumstances\&.
 .PP
-For details of the other \fBzargs\fP options, see \fIxargs\fP(1) or run
+The options \fB\-i\fP, \fB\-I\fP, \fB\-l\fP, \fB\-L\fP, and \fB\-n\fP differ slightly
+from their usage in \fBxargs\fP\&.  There are no input lines for \fBzargs\fP to
+count, so \fB\-l\fP and \fB\-L\fP count through the \fIinput\fP list, and \fB\-n\fP
+counts the number of arguments passed to each execution of \fIcommand\fP,
+\fIincluding\fP any \fIarg\fP list\&.  Also, any time \fB\-i\fP or \fB\-I\fP is used,
+each \fIinput\fP is processed separately as if by `\fB\-L\fP \fB1\fP\&'\&.
+.PP
+For details of the other \fBzargs\fP options, see \fIxargs\fP(1) (but note
+the difference in function between \fBzargs\fP and \fBxargs\fP) or run
 \fBzargs\fP with the \fB\-\fP\fB\-help\fP option\&.
 .RE
 .TP

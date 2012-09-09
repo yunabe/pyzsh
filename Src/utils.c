@@ -275,9 +275,13 @@ zerrmsg(FILE *file, const char *fmt, va_list ap)
 #endif
     char *errmsg;
 
-    if ((unset(SHINSTDIN) || locallevel) && lineno)
+    if ((unset(SHINSTDIN) || locallevel) && lineno) {
+#if defined(ZLONG_IS_LONG_LONG) && defined(PRINTF_HAS_LLD)
+	fprintf(file, "%lld: ", lineno);
+#else
 	fprintf(file, "%ld: ", (long)lineno);
-    else
+#endif
+    } else
 	fputc((unsigned char)' ', file);
 
     while (*fmt)
@@ -1682,7 +1686,7 @@ adjustwinsize(int from)
 	(shttyinfo.winsize.ws_row != ttyrows ||
 	 shttyinfo.winsize.ws_col != ttycols)) {
 	/* shttyinfo.winsize is already set up correctly */
-	ioctl(SHTTY, TIOCSWINSZ, (char *)&shttyinfo.winsize);
+	/* ioctl(SHTTY, TIOCSWINSZ, (char *)&shttyinfo.winsize); */
     }
 #endif /* TIOCGWINSZ */
 
@@ -3110,7 +3114,7 @@ wordcount(char *s, char *sep, int mul)
 	r = 1;
 	sl = strlen(sep);
 	for (; (c = findsep(&s, sep, 0)) >= 0; s += sl)
-	    if ((c && *(s + sl)) || mul)
+	    if ((c || mul) && (sl || *(s + sl)))
 		r++;
     } else {
 	char *t = s;
@@ -4009,6 +4013,28 @@ metafy(char *buf, int len, int heap)
 
 
 /*
+ * Duplicate a string, metafying it as we go.
+ *
+ * Typically, this is used only for strings imported from outside
+ * zsh, as strings internally are either already metafied or passed
+ * around with an associated length.
+ */
+/**/
+mod_export char *
+ztrdup_metafy(const char *s)
+{
+    /* To mimic ztrdup() behaviour */
+    if (!s)
+	return NULL;
+    /*
+     * metafy() does lots of different things, so the pointer
+     * isn't const.  Using it with META_DUP should be safe.
+     */
+    return metafy((char *)s, -1, META_DUP);
+}
+
+
+/*
  * Take a null-terminated, metafied string in s into a literal
  * representation by converting in place.  The length is in *len
  * len is non-NULL; if len is NULL, you don't know the length of
@@ -4709,7 +4735,7 @@ quotestring(const char *s, char **e, int instring)
     char *v;
     int alloclen;
     char *buf;
-    int sf = 0, shownull;
+    int sf = 0, shownull = 0;
     /*
      * quotesub is used with QT_SINGLE_OPTIONAL.
      * quotesub = 0:  mechanism not active
@@ -4724,14 +4750,12 @@ quotestring(const char *s, char **e, int instring)
     const char *uend;
 
     slen = strlen(s);
-    if (instring == QT_BACKSLASH_SHOWNULL) {
-	shownull = 1;
-	instring = QT_BACKSLASH;
-    } else {
-	shownull = 0;
-    }
     switch (instring)
     {
+    case QT_BACKSLASH_SHOWNULL:
+	shownull = 1;
+	instring = QT_BACKSLASH;
+	/*FALLTHROUGH*/
     case QT_BACKSLASH:
 	/*
 	 * With QT_BACKSLASH we may need to use $'\300' stuff.
@@ -4739,22 +4763,23 @@ quotestring(const char *s, char **e, int instring)
 	 * storage and using heap for correct size at end.
 	 */
 	alloclen = slen * 7 + 1;
-	if (!*s && shownull)
-	    alloclen += 2;	/* for '' */
 	break;
 
     case QT_SINGLE_OPTIONAL:
 	/*
 	 * Here, we may need to add single quotes.
+	 * Always show empty strings.
 	 */
 	alloclen = slen * 4 + 3;
-	quotesub = 1;
+	quotesub = shownull = 1;
 	break;
 
     default:
 	alloclen = slen * 4 + 1;
 	break;
     }
+    if (!*s && shownull)
+	alloclen += 2;	/* for '' */
 
     quotestart = v = buf = zshcalloc(alloclen);
 

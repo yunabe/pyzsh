@@ -999,8 +999,8 @@ endsitem()
 In tt(patch-format) and tt(nopatch-format) these replacements are done:
 
 startsitem()
-sitem(tt(%p))(The name of the top-most applied patch.)
-sitem(tt(%u))(The number of unapplied patches.)
+sitem(tt(%p))(The name of the top-most applied patch (tt(applied-string)).)
+sitem(tt(%u))(The number of unapplied patches (tt(unapplied-string)).)
 sitem(tt(%n))(The number of applied patches.)
 sitem(tt(%c))(The number of unapplied patches.)
 sitem(tt(%g))(The names of active tt(mq) guards (tt(hg) backend).)
@@ -1733,6 +1733,16 @@ stripping of quotes.  Special handling is done between words: the current
 context is examined and if it contains the string tt(back), the word before
 the cursor is considered, else the word after cursor is considered. Some
 examples are given below.
+
+The style tt(skip-whitespace-first) is only used with the
+tt(forward-word) widget.  If it is set to true, then tt(forward-word)
+skips any non-word-characters, followed by any non-word-characters:
+this is similar to the behaviour of other word-orientated widgets,
+and also that used by other editors, however it differs from the
+standard zsh behaviour.  When using tt(select-word-style) the widget
+is set in the context tt(:zle:*) to tt(true) if the word style is
+tt(bash) and tt(false) otherwise.  It may be overridden by setting it in
+the more specific context tt(:zle:forward-word*).
 
 Here are some examples of use of the styles, actually taken from the
 simplified interface in tt(select-word-style):
@@ -3463,11 +3473,11 @@ game.
 )
 findex(zargs)
 item(tt(zargs) [ var(option) ... tt(-)tt(-) ] [ var(input) ... ] [ tt(-)tt(-) var(command) [ var(arg) ... ] ])(
-This function works like GNU xargs, except that instead of reading lines
-of arguments from the standard input, it takes them from the command line.
-This is useful because zsh, especially with recursive glob operators,
-often can construct a command line for a shell function that is longer
-than can be accepted by an external command.
+This function has a similar purpose to GNU xargs.  Instead of
+reading lines of arguments from the standard input, it takes them from
+the command line.  This is useful because zsh, especially with recursive
+glob operators, often can construct a command line for a shell function
+that is longer than can be accepted by an external command.
 
 The var(option) list represents options of the tt(zargs) command itself,
 which are the same as those of tt(xargs).  The var(input) list is the
@@ -3501,7 +3511,15 @@ example(zargs -e.. -- **/*(.) .. ls -l)
 This is a good choice in that example because no plain file can be named
 `tt(..)', but the best end-marker depends on the circumstances.
 
-For details of the other tt(zargs) options, see zmanref(xargs) or run
+The options tt(-i), tt(-I), tt(-l), tt(-L), and tt(-n) differ slightly
+from their usage in tt(xargs).  There are no input lines for tt(zargs) to
+count, so tt(-l) and tt(-L) count through the var(input) list, and tt(-n)
+counts the number of arguments passed to each execution of var(command),
+em(including) any var(arg) list.  Also, any time tt(-i) or tt(-I) is used,
+each var(input) is processed separately as if by `tt(-L) tt(1)'.
+
+For details of the other tt(zargs) options, see zmanref(xargs) (but note
+the difference in function between tt(zargs) and tt(xargs)) or run
 tt(zargs) with the tt(-)tt(-help) option.
 )
 findex(zed)

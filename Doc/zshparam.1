@@ -1,4 +1,4 @@
-.TH "ZSHPARAM" "1" "February 22, 2011" "zsh 4\&.3\&.17"
+.TH "ZSHPARAM" "1" "July 21, 2012" "zsh 5\&.0\&.0"
 .SH "NAME"
 zshparam \- zsh parameters
 .\" Yodl file: Zsh/params.yo
@@ -263,6 +263,7 @@ example (assuming the option \fBKSH_ARRAYS\fP is not in effect):
 .RE
 .PP
 If \fBKSH_ARRAYS\fP is in effect, the \fB\-le\fP should be replaced by \fB\-lt\fP\&.
+.RE
 .TP
 \fBR\fP
 Like `\fBr\fP\&', but gives the last match\&.  For associative arrays, gives
@@ -285,7 +286,6 @@ required; using a parameter to hold the key has the desired effect:
 \fBkey2=\&'original key'
 print ${array[(Re)$key2]}\fP
 .fi
-.RE
 .RE
 .RE
 .TP
@@ -991,6 +991,12 @@ and replaces the \fBSUNKEYBOARDHACK\fP option which did this for
 backquotes only\&.  Should the chosen character be one of singlequote,
 doublequote or backquote, there must also be an odd number of them
 on the command line for the last one to be removed\&.
+.RS
+.PP
+For backward compabitility, if the \fBSUNKEYBOARDHACK\fP option is
+explicitly set, the value of \fBKEYBOARD_HACK\fP reverts to backquote\&.
+If the option is explicitly unset, this variable is set to empty\&.
+.RE
 .TP
 \fBKEYTIMEOUT\fP
 The time the shell waits, in hundredths of seconds, for another key to
@@ -1069,6 +1075,30 @@ An array (colon\-separated list)
 whose value is not used by the shell\&.  The \fBmanpath\fP
 array can be useful, however, since setting it also sets
 \fBMANPATH\fP, and vice versa\&.
+.TP
+.PD 0
+\fBmatch\fP
+.TP
+.PD 0
+\fBmbegin\fP
+.TP
+.PD
+\fBmend\fP
+Arrays set by the shell when the \fBb\fP globbing flag is used in pattern
+matches\&.  See the subsection \fIGlobbing flags\fP in
+the documentation for \fIFilename Generation\fP in \fIzshexpn\fP(1)\&.
+.TP
+.PD 0
+\fBMATCH\fP
+.TP
+.PD 0
+\fBMBEGIN\fP
+.TP
+.PD
+\fBMEND\fP
+Set by the shell when the \fBm\fP globbing flag is used in pattern
+matches\&.  See the subsection \fIGlobbing flags\fP in
+the documentation for \fIFilename Generation\fP in \fIzshexpn\fP(1)\&.
 .TP
 \fBmodule_path\fP <S> <Z> (\fBMODULE_PATH\fP <S>)
 An array (colon\-separated list)
@@ -1233,7 +1263,7 @@ the workaround `\fBTERM=$TERM\fP\&' unnecessary\&.
 .TP
 \fBTIMEFMT\fP
 The format of process time reports with the \fBtime\fP keyword\&.
-The default is `\fB%E real  %U user  %S system  %P %J\fP\&'\&.
+The default is `\fB%J  %U user %S system %P cpu %*E total\fP\&'\&.
 Recognizes the following escape sequences, although not all
 may be available on all systems, and some that are available
 may not be useful:
@@ -1261,18 +1291,18 @@ The CPU percentage, computed as
 Number of times the process was swapped\&.
 .TP
 \fB%X\fP
-The average amount in (shared) text space used in Kbytes\&.
+The average amount in (shared) text space used in kilobytes\&.
 .TP
 \fB%D\fP
 The average amount in (unshared) data/stack space used in
-Kbytes\&.
+kilobytes\&.
 .TP
 \fB%K\fP
-The total space used (%X+%D) in Kbytes\&.
+The total space used (%X+%D) in kilobytes\&.
 .TP
 \fB%M\fP
 The  maximum memory the process had in use at any time in
-Kbytes\&.
+megabytes\&.
 .TP
 \fB%F\fP
 The number of major page faults (page needed to be brought

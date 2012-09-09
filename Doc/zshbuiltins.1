@@ -1,4 +1,4 @@
-.TH "ZSHBUILTINS" "1" "February 22, 2011" "zsh 4\&.3\&.17"
+.TH "ZSHBUILTINS" "1" "July 21, 2012" "zsh 5\&.0\&.0"
 .SH "NAME"
 zshbuiltins \- zsh built\-in commands
 .\" Yodl file: Zsh/builtins.yo
@@ -387,7 +387,7 @@ See the section `The zsh/termcap Module\&' in \fIzshmodules\fP(1)\&.
 \fBechoti\fP
 See the section `The zsh/terminfo Module\&' in \fIzshmodules\fP(1)\&.
 .TP
-\fBemulate\fP [ \fB\-LR\fP ] [ {\fBzsh\fP|\fBsh\fP|\fBksh\fP|\fBcsh\fP} [ \fB\-c\fP \fBarg\fP ] ]
+\fBemulate\fP [ \fB\-LR\fP ] [ {\fBzsh\fP|\fBsh\fP|\fBksh\fP|\fBcsh\fP} [ \fIflags\fP \&.\&.\&. ] ]
 Without any argument print current emulation mode\&.
 .RS
 .PP
@@ -398,29 +398,43 @@ If the argument is not one of the shells listed above, \fBzsh\fP
 will be used as a default; more precisely, the tests performed on the
 argument are the same as those used to determine the emulation at startup
 based on the shell name, see
-the section `Compatibility\&' in \fIzshmisc\fP(1)
+the section COMPATIBILITY in \fIzsh\fP(1)
 \&.
 .PP
-If the \fB\-R\fP option is given, all options
+If the \fBemulate\fP command occurs inside a function that has been
+marked for execution tracing with \fBfunctions \-t\fP then the \fBxtrace\fP
+option will be turned on regardless of emulation mode or other options\&.
+Note that code executed inside the function by the \fB\&.\fP, \fBsource\fP, or
+\fBeval\fP commands is not considered to be running directly from the
+function, hence does not provoke this behaviour\&.
+.PP
+If the \fB\-R\fP switch is given, all settable options
 are reset to their default value corresponding to the specified emulation
 mode, except for certain options describing the interactive
 environment; otherwise, only those options likely to cause portability
-problems in scripts and functions are altered\&.  If the \fB\-L\fP option is given,
+problems in scripts and functions are altered\&.  If the \fB\-L\fP switch is given,
 the options \fBLOCAL_OPTIONS\fP and \fBLOCAL_TRAPS\fP will be set as
 well, causing the effects of the \fBemulate\fP command and any \fBsetopt\fP and
 \fBtrap\fP commands to be local to the immediately surrounding shell
 function, if any; normally these options are turned off in all emulation
-modes except \fBksh\fP\&. The \fB\-L\fP and \fB\-c\fP are mutually exclusive\&.
+modes except \fBksh\fP\&. The \fB\-L\fP switch is mutually exclusive with the
+use of \fB\-c\fP in \fIflags\fP\&.
 .PP
-If \fB\-c\fP \fBarg\fP is given, evaluate \fBarg\fP while the requested
-emulation is temporarily in effect\&.  The emulation and all options will
-be restored to their original values before \fBemulate\fP returns\&.  The
-\fB\-R\fP flag may be used\&.
+The \fIflags\fP may be any of the invocation\-time flags described in
+the section INVOCATION in \fIzsh\fP(1),
+except that `\fB\-o EMACS\fP\&' and `\fB\-o VI\fP' may not be used\&.  Flags such
+as `\fB+r\fP\&'/`\fB+o RESTRICTED\fP' may be prohibited in some circumstances\&.
+If \fB\-c\fP \fIarg\fP appears in \fIflags\fP, \fIarg\fP is evaluated while the
+requested emulation is temporarily in effect\&.  In this case the emulation
+mode and all options are restored to their previous values before
+\fBemulate\fP returns\&.  The \fB\-R\fP switch may precede the name of the shell
+to emulate; note this has a meaning distinct from including \fB\-R\fP in
+\fIflags\fP\&.
 .PP
 Use of \fB\-c\fP enables `sticky\&' emulation mode for functions defined
 within the evaluated expression:  the emulation mode is associated
 thereafter with the function so that whenever the function is executed
-the emulation (respecting the \fB\-R\fP flag, if present) and all
+the emulation (respecting the \fB\-R\fP switch, if present) and all
 options are set before entry to the function, and restored after exit\&.
 If the function is called when the sticky emulation is already in
 effect, either within an `\fBemulate\fP \fIshell\fP \fB\-c\fP\&' expression or
@@ -474,7 +488,7 @@ No special handling is provided for functions marked for
 the \fBzcompile\fP command\&.
 .TP
 4\&.
-The presence or absence of the \fB\-R\fP flag to \fBemulate\fP
+The presence or absence of the \fB\-R\fP switch to \fBemulate\fP
 corresponds to different sticky emulation modes, so for example
 `\fBemulate sh \-c\fP\&', `\fBemulate \-R sh \-c\fP' and `\fBemulate csh \-c\fP'
 are treated as three distinct sticky emulations\&.

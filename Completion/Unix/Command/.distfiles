@@ -83,6 +83,7 @@ _go
 _gpg
 _gphoto2
 _gprof
+_gradle
 _graphicsmagick
 _grep
 _groff
@@ -130,6 +131,7 @@ _mh
 _mkdir
 _module
 _monotone
+_mosh
 _mount
 _mpc
 _mt
@@ -211,7 +213,7 @@ _subversion
 _sudo
 _surfraw
 _sysctl
-_systemctl
+_systemd
 _tar
 _tardy
 _tcpdump

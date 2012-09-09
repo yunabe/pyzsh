@@ -1649,7 +1649,7 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int pf_flags)
      * This is one of the things that decides whether multsub
      * will produce an array, but in an extremely indirect fashion.
      */
-    int nojoin = (pf_flags & PREFORK_SHWORDSPLIT) ? !(ifs && *ifs) : 0;
+    int nojoin = (pf_flags & PREFORK_SHWORDSPLIT) ? !(ifs && *ifs) && !qt : 0;
     /*
      * != 0 means ${...}, otherwise $...  What works without braces
      * is largely a historical artefact (everything works with braces,
@@ -1828,6 +1828,10 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int pf_flags)
 			quotemod = 1;
 			quotetype = QT_SINGLE_OPTIONAL;
 		    } else {
+			if (quotetype == QT_SINGLE_OPTIONAL) {
+			    /* extra q's after '-' not allowed */
+			    goto flagerr;
+			}
 			quotemod++, quotetype++;
 		    }
 		    break;
@@ -2871,6 +2875,69 @@ paramsubst(LinkList l, LinkNode n, char **str, int qt, int pf_flags)
 		getmatch(&val, s, flags, flnum, replstr);
 	    }
 	    break;
+	}
+    } else if (inbrace && (*s == '|' || *s == Bar ||
+			   *s == '*' || *s == Star)) {
+	int intersect = (*s == '*' || *s == Star);
+	char **compare, **ap, **apsrc;
+	++s;
+	if (*itype_end(s, IIDENT, 0)) {
+	    untokenize(s);
+	    zerr("not an identifier: %s", s);
+	    return NULL;
+	}
+	compare = getaparam(s);
+	if (compare) {
+	    HashTable ht = newuniqtable(arrlen(compare)+1);
+	    int present;
+	    for (ap = compare; *ap; ap++)
+		(void)addhashnode2(ht, *ap, (HashNode)
+				   zhalloc(sizeof(struct hashnode)));
+	    if (!vunset && isarr) {
+		if (!copied) {
+		    aval = arrdup(aval);
+		    copied = 1;
+		}
+		for (ap = apsrc = aval; *apsrc; apsrc++) {
+		    untokenize(*apsrc);
+		    present = (gethashnode2(ht, *apsrc) != NULL);
+		    if (intersect ? present : !present) {
+			if (ap != apsrc) {
+			    *ap = *apsrc;
+			}
+			ap++;
+		    }
+		}
+		*ap = NULL;
+	    } else {
+		if (vunset) {
+		    if (unset(UNSET)) {
+			*idend = '\0';
+			zerr("%s: parameter not set", idbeg);
+			deletehashtable(ht);
+			return NULL;
+		    }
+		    val = dupstring("");
+		} else {
+		    present = (gethashnode2(ht, val) != NULL);
+		    if (intersect ? !present : present)
+			val = dupstring("");
+		}
+	    }
+	    deletehashtable(ht);
+	} else if (intersect) {
+	    /*
+	     * The intersection with nothing is nothing...
+	     * Seems a bit pointless complaining that the first
+	     * expression is unset here if the second is, too.
+	     */
+	    if (!vunset) {
+		if (isarr) {
+		    aval = mkarray(NULL);
+		} else {
+		    val = dupstring("");
+		}
+	    }
 	}
     } else {			/* no ${...=...} or anything, but possible modifiers. */
 	/*

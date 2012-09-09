@@ -58,7 +58,7 @@ static struct builtin builtins[] =
     BUILTIN("disable", 0, bin_enable, 0, -1, BIN_DISABLE, "afmrs", NULL),
     BUILTIN("disown", 0, bin_fg, 0, -1, BIN_DISOWN, NULL, NULL),
     BUILTIN("echo", BINF_SKIPINVALID, bin_print, 0, -1, BIN_ECHO, "neE", "-"),
-    BUILTIN("emulate", 0, bin_emulate, 0, 3, 0, "LR", NULL),
+    BUILTIN("emulate", 0, bin_emulate, 0, -1, 0, "LR", NULL),
     BUILTIN("enable", 0, bin_enable, 0, -1, BIN_ENABLE, "afmrs", NULL),
     BUILTIN("eval", BINF_PSPECIAL, bin_eval, 0, -1, BIN_EVAL, NULL, NULL),
     BUILTIN("exit", BINF_PSPECIAL, bin_break, 0, 1, BIN_EXIT, NULL, NULL),
@@ -1498,7 +1498,7 @@ bin_fc(char *nam, char **argv, Options ops, int func)
     }
     if (OPT_ISSET(ops,'l')) {
 	/* list the required part of the history */
-	retval = fclist(stdout, ops, first, last, asgf, pprog);
+	retval = fclist(stdout, ops, first, last, asgf, pprog, 0);
 	unqueue_signals();
     }
     else {
@@ -1530,7 +1530,7 @@ bin_fc(char *nam, char **argv, Options ops, int func)
 		}
 	    }
 	    ops->ind['n'] = 1;	/* No line numbers here. */
-	    if (!fclist(out, ops, first, last, asgf, pprog)) {
+	    if (!fclist(out, ops, first, last, asgf, pprog, 1)) {
 		char *editor;
 
 		if (func == BIN_R)
@@ -1639,7 +1639,7 @@ fcsubs(char **sp, struct asgment *sub)
 /**/
 static int
 fclist(FILE *f, Options ops, zlong first, zlong last,
-       struct asgment *subs, Patprog pprog)
+       struct asgment *subs, Patprog pprog, int is_command)
 {
     int fclistdone = 0;
     zlong tmp;
@@ -1652,8 +1652,8 @@ fclist(FILE *f, Options ops, zlong first, zlong last,
 	last = first;
 	first = tmp;
     }
-    if (first > last) {
-	zwarnnam("fc", "history events are in wrong order, aborted");
+    if (is_command && first > last) {
+	zwarnnam("fc", "history events can't be executed backwards, aborted");
 	if (f != stdout)
 	    fclose(f);
 	return 1;
@@ -1976,9 +1976,10 @@ typeset_single(char *cname, char *pname, Param pm, UNUSED(int func),
 			tc = 0;	/* but don't do a normal conversion */
 		    }
 		} else if (!setsecondstype(pm, on, off)) {
-		    if (value && !setsparam(pname, ztrdup(value)))
+		    if (value && !(pm = setsparam(pname, ztrdup(value))))
 			return NULL;
-		    return pm;
+		    usepm = 1;
+		    err = 0;
 		}
 	    }
 	    if (err)
@@ -3054,6 +3055,34 @@ bin_unset(char *name, char **argv, Options ops, int func)
 		    *sse = ']';
 		}
 		paramtab = tht;
+	    } else if (PM_TYPE(pm->node.flags) == PM_SCALAR ||
+		       PM_TYPE(pm->node.flags) == PM_ARRAY) {
+		struct value vbuf;
+		vbuf.isarr = (PM_TYPE(pm->node.flags) == PM_ARRAY ?
+			      SCANPM_ARRONLY : 0);
+		vbuf.pm = pm;
+		vbuf.flags = 0;
+		vbuf.start = 0;
+		vbuf.end = -1;
+		vbuf.arr = 0;
+		*ss = '[';
+		if (getindex(&ss, &vbuf, SCANPM_ASSIGNING) == 0 &&
+		    vbuf.pm && !(vbuf.pm->node.flags & PM_UNSET)) {
+		    if (PM_TYPE(pm->node.flags) == PM_SCALAR) {
+			setstrvalue(&vbuf, ztrdup(""));
+		    } else {
+			/* start is after the element for reverse index */
+			int start = vbuf.start - !!(vbuf.flags & VALFLAG_INV);
+			if (start < arrlen(vbuf.pm->u.arr)) {
+			    char *arr[2];
+			    arr[0] = "";
+			    arr[1] = 0;
+			    setarrvalue(&vbuf, zarrdup(arr));
+			}
+		    }
+		}
+		returnval = errflag;
+		errflag = 0;
 	    } else {
 		zerrnam(name, "%s: invalid element for unset", s);
 		returnval = 1;
@@ -4958,14 +4987,14 @@ bin_emulate(UNUSED(char *nam), char **argv, Options ops, UNUSED(int func))
 {
     int opt_L = OPT_ISSET(ops, 'L');
     int opt_R = OPT_ISSET(ops, 'R');
-    int saveemulation, savesticky_emulation;
-    int ret;
+    int saveemulation, savesticky_emulation, savehackchar;
+    int ret = 1;
     char saveopts[OPT_SIZE];
+    char *cmd = 0;
+    const char *shname = *argv;
 
     /* without arguments just print current emulation */
-    if (!*argv) {
-	const char *shname;
-
+    if (!shname) {
 	if (opt_L || opt_R) {
 	    zwarnnam("emulate", "not enough arguments");
 	    return 1;
@@ -4995,39 +5024,46 @@ bin_emulate(UNUSED(char *nam), char **argv, Options ops, UNUSED(int func))
 
     /* with single argument set current emulation */
     if (!argv[1]) {
-	emulate(*argv, OPT_ISSET(ops,'R'));
+	emulate(shname, OPT_ISSET(ops,'R'));
 	if (OPT_ISSET(ops,'L'))
 	    opts[LOCALOPTIONS] = opts[LOCALTRAPS] = 1;
 	return 0;
     }
 
+    argv++;
+    memcpy(saveopts, opts, sizeof(opts));
+    savehackchar = keyboardhackchar;
+    cmd = parseopts("emulate", &argv);
+
+    /* parseopts() has consumed anything that looks like an option */
+    if (*argv) {
+	zwarnnam("emulate", "unknown argument %s", *argv);
+	goto restore;
+    }
+
     /* If "-c command" is given, evaluate command using specified
      * emulation mode.
      */
-    if (strcmp(argv[1], "-c")) {
-	zwarnnam("emulate", "unknown argument %s", argv[1]);
-	return 1;
-    }
+    if (cmd) {
+	if (opt_L) {
+	    zwarnnam("emulate", "option -L incompatible with -c");
+	    goto restore;
+	}
+	*--argv = cmd;	/* on stack, never free()d, see execbuiltin() */
+    } else
+	return 0;
 
-    if (!argv[2]) {
-	zwarnnam("emulate", "not enough arguments");
-	return 1;
-    }
-
-    if (opt_L) {
-	zwarnnam("emulate", "option -L incompatible with -c");
-	return 1;
-    }
-
-    memcpy(saveopts, opts, sizeof(opts));
     saveemulation = emulation;
     savesticky_emulation = sticky_emulation;
-    emulate(*argv, OPT_ISSET(ops,'R'));
+    emulate(shname, OPT_ISSET(ops,'R'));
     sticky_emulation = emulation;
-    ret = eval(argv+2);
-    memcpy(opts, saveopts, sizeof(opts));
+    ret = eval(argv);
     sticky_emulation = savesticky_emulation;
     emulation = saveemulation;
+ restore:
+    memcpy(opts, saveopts, sizeof(opts));
+    keyboardhackchar = savehackchar;
+    inittyptab();	/* restore banghist */
     return ret;
 }
 

@@ -1,4 +1,4 @@
-.TH "ZSHZLE" "1" "February 22, 2011" "zsh 4\&.3\&.17"
+.TH "ZSHZLE" "1" "July 21, 2012" "zsh 5\&.0\&.0"
 .SH "NAME"
 zshzle \- zsh command line editor
 .\" Yodl file: Zsh/zle.yo
@@ -947,6 +947,11 @@ Note that the effect of \fBregion_highlight\fP is not saved and disappears
 as soon as the line is accepted\&.
 .RE
 .TP
+\fBUNDO_CHANGE_NO\fP (integer)
+A number representing the state of the undo history\&.  The only use
+of this is passing as an argument to the \fBundo\fP widget in order to
+undo back to the recorded point\&.  Read\-only\&.
+.TP
 \fBWIDGET\fP (scalar)
 The name of the widget currently being executed; read\-only\&.
 .TP
@@ -969,11 +974,24 @@ Contains a set of space\-separated words that describe the current \fBzle\fP
 state\&.
 .RS
 .PP
-Currently, the only state shown is the insert mode as set by the
-\fBoverwrite\-mode\fP or \fBvi\-replace\fP widgets\&.  The string contains
-`\fBinsert\fP\&' if characters to be inserted on the command line move existing
-characters to the right, `\fBoverwrite\fP\&' if characters to be inserted
-overwrite existing characters\&.
+Currently, the states shown are the insert mode as set by the
+\fBoverwrite\-mode\fP or \fBvi\-replace\fP widgets and whether history commands
+will visit imported entries as controlled by the set\-local\-history widget\&.
+The string contains `\fBinsert\fP\&' if characters to be inserted on the
+command line move existing characters to the right or `\fBoverwrite\fP\&'
+if characters to be inserted overwrite existing characters\&. It contains
+`\fBlocalhistory\fP\&' if only local history commands will be visited or
+`\fBglobalhistory\fP\&' if imported history commands will also be visited\&.
+.PP
+The substrings are sorted in alphabetical order so that if you want to
+test for two specific substrings in a future\-proof way, you can do match
+by doing:
+.PP
+.RS
+.nf
+\fBif [[ $ZLE_STATE == *insert*globalhistory* ]]; then \&.\&.\&.; fi\fP
+.fi
+.RE
 .RE
 .RE
 .PP
@@ -1526,6 +1544,12 @@ Move to the previous event in the history list\&.
 Search forward in the history for a line beginning with the current
 line up to the cursor\&.
 This leaves the cursor in its original position\&.
+.TP
+\fBset\-local\-history\fP
+By default, history movement commands visit the imported lines as well as
+the local lines\&. This widget lets you toggle this on and off, or set it with
+the numeric argument\&. Zero for both local and imported lines and nonzero for
+only local lines\&.
 .SS "Modifying Text"
 .PD 0
 .TP
@@ -2142,7 +2166,10 @@ This command is executed when a key sequence that is not bound to any
 command is typed\&.  By default it beeps\&.
 .TP
 \fBundo\fP (^_ ^Xu ^X^U) (unbound) (unbound)
-Incrementally undo the last text modification\&.
+Incrementally undo the last text modification\&.  When called from a
+user\-defined widget, takes an optional argument indicating a previous state
+of the undo history as returned by the \fBUNDO_CHANGE_NO\fP variable;
+modifications are undone until that state is reached\&.
 .TP
 \fBredo\fP
 Incrementally redo undone text modifications\&.
