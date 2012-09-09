@@ -106,7 +106,9 @@ uninstall.fns:
 # install/uninstall just the shell functions
 install.python:
 	$(SHELL) $(sdir_top)/mkinstalldirs $(DESTDIR)$(pydir)/zsh; \
-	/bin/cp -r Python/* $(DESTDIR)$(pydir)/zsh; \
+  $(SHELL) $(sdir_top)/mkinstalldirs $(DESTDIR)$(pydir)/pysh; \
+	/bin/cp -r Python/zsh/* $(DESTDIR)$(pydir)/zsh; \
+	/bin/cp -r Python/pysh/* $(DESTDIR)$(pydir)/pysh; \
 	exit 0
 
 uninstall.python:

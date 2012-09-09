@@ -4,9 +4,16 @@ import re
 import sys
 from StringIO import StringIO
 
+import pysh.shell.builtin
+from pysh.shell.evaluator import Evaluator
+from pysh.shell.evaluator import start_global_wait_thread
+from pysh.shell.parser import Parser
+from pysh.shell.pycmd import pycmd
+from pysh.shell.pycmd import IOType
+from pysh.shell.tokenizer import Tokenizer
+
 import zsh.native
 from zsh.native import hgetc
-import zsh.pysh
 import zsh.scanner
 
 
@@ -94,7 +101,7 @@ def command():
     return cmd
 
 
-class Evaluator(zsh.pysh.Evaluator):
+class Evaluator(Evaluator):
   def __after_folk(self, pid):
     if pid == 0:
       zsh.native.pyzsh_child_unblock()
@@ -114,16 +121,15 @@ alias_map = AliasMap()
 
 
 def run(cmd_str, globals, locals):
-  tok = zsh.pysh.Tokenizer(cmd_str, alias_map=alias_map)
-  parser = zsh.pysh.Parser(tok)
+  start_global_wait_thread()
+  tok = Tokenizer(cmd_str, alias_map=alias_map)
+  parser = Parser(tok)
   evaluator = Evaluator(parser)
   evaluator.execute(globals, locals)
   return evaluator.rc()
 
 
-class pyzsh_cd(object):
-  def process(self, args, input):
-    zsh.native.pyzsh_execbuiltin('cd', map(str, args))
-    return ()
-
-zsh.pysh.register_pycmd('cd', pyzsh_cd())
+@pycmd(name='cd', inType=IOType.No, outType=IOType.No)
+def pyzsh_cd(args, input, options):
+  zsh.native.pyzsh_execbuiltin('cd', map(str, args))
+  return ()

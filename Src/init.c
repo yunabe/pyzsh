@@ -1574,7 +1574,7 @@ zsh_main(UNUSED(int argc), char **argv)
     setpythonpath();  // Must be called before Py_Initialize.
     Py_Initialize();
     init_native();
-    PyRun_SimpleString("import zsh.pysh;");
+    PyRun_SimpleString("import zsh;import pysh;");
     char **t, *runscript = NULL;
     int t0;
 #ifdef USE_LOCALE
