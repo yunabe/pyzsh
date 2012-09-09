@@ -7513,6 +7513,53 @@ _ACEOF
   fi
 fi
 
+if test "$zsh_cv_64_bit_type" = "long long"; then
+    $as_echo "#define ZLONG_IS_LONG_LONG 1" >>confdefs.h
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for %lld printf support" >&5
+$as_echo_n "checking for %lld printf support... " >&6; }
+if ${zsh_cv_printf_has_lld+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  zsh_cv_printf_has_lld=no
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdio.h>
+#include <string.h>
+int main(int argc, char **argv)
+{
+   long long foo = ((long long)0xdead << 40) | 0xf00d;
+   char buf[80];
+   sprintf(buf, "before%lldafter", foo);
+   if (!strcmp(buf, "before62677660341432333after")) {
+      return 0;
+   }
+   return 1;
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  zsh_cv_printf_has_lld=yes
+else
+  zsh_cv_printf_has_lld=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $zsh_cv_printf_has_lld" >&5
+$as_echo "$zsh_cv_printf_has_lld" >&6; }
+
+if test x$zsh_cv_printf_has_lld = xyes; then
+  $as_echo "#define PRINTF_HAS_LLD 1" >>confdefs.h
+
+fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sigset_t" >&5
 $as_echo_n "checking for sigset_t... " >&6; }
 if ${zsh_cv_type_sigset_t+:} false; then :
@@ -8960,6 +9007,7 @@ $as_echo "$zsh_cv_path_term_header" >&6; }
 
 
 
+
 if test x$zsh_cv_path_term_header != xnone; then
   $as_echo "#define ZSH_HAVE_TERM_H 1" >>confdefs.h
 
@@ -8994,6 +9042,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $boolcodes" >&5
 $as_echo "$boolcodes" >&6; }
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if numcodes is available" >&5
 $as_echo_n "checking if numcodes is available... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9017,6 +9066,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $numcodes" >&5
 $as_echo "$numcodes" >&6; }
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if strcodes is available" >&5
 $as_echo_n "checking if strcodes is available... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9040,6 +9090,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $strcodes" >&5
 $as_echo "$strcodes" >&6; }
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if boolnames is available" >&5
 $as_echo_n "checking if boolnames is available... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9063,6 +9114,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $boolnames" >&5
 $as_echo "$boolnames" >&6; }
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if numnames is available" >&5
 $as_echo_n "checking if numnames is available... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9086,6 +9138,7 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $numnames" >&5
 $as_echo "$numnames" >&6; }
+
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if strnames is available" >&5
 $as_echo_n "checking if strnames is available... " >&6; }
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9109,6 +9162,33 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $strnames" >&5
 $as_echo "$strnames" >&6; }
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking if tgoto prototype is missing" >&5
+$as_echo_n "checking if tgoto prototype is missing... " >&6; }
+  tgoto_includes="$term_includes
+/* guaranteed to clash with any valid tgoto prototype */
+extern void tgoto(int **stuff, float **more_stuff);"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$tgoto_includes
+int
+main ()
+{
+int *stuff; float *more_stuff; tgoto(&stuff, &more_stuff);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  $as_echo "#define TGOTO_PROTO_MISSING 1" >>confdefs.h
+ tgotoprotomissing=yes
+else
+  tgotoprotomissing=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $tgotoprotomissing" >&5
+$as_echo "$tgotoprotomissing" >&6; }
 else
   ZSH_TERM_H=
 fi

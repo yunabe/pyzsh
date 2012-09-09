@@ -523,6 +523,20 @@ emulate(const char *zsh_name, int fully)
     if (fully)
 	emulation |= EMULATE_FULLY;
     installemulation();
+
+    if (funcstack && funcstack->tp == FS_FUNC) {
+	/*
+	 * We are inside a function.  Decide if it's traced.
+	 * Pedantic note: the function in the function table isn't
+	 * guaranteed to be what we're executing, but it's
+	 * close enough.
+	 */
+	Shfunc shf = (Shfunc)shfunctab->getnode(shfunctab, funcstack->name);
+	if (shf && (shf->node.flags & PM_TAGGED)) {
+	    /* Tracing is on, so set xtrace */
+	    opts[XTRACE] = 1;
+	}
+    }
 }
 
 /* setopt, unsetopt */
@@ -753,6 +767,8 @@ dosetopt(int optno, int value, int force)
 	    return -1;
 #endif /* GETPWNAM_FAKED */
     } else if ((optno == EMACSMODE || optno == VIMODE) && value) {
+	if (sticky_emulation)
+	    return -1;
 	zleentry(ZLE_CMD_SET_KEYMAP, optno);
 	opts[(optno == EMACSMODE) ? VIMODE : EMACSMODE] = 0;
     } else if (optno == SUNKEYBOARDHACK) {

@@ -1006,6 +1006,9 @@
 /* Define to 1 if you use POSIX style signal handling. */
 #undef POSIX_SIGNALS
 
+/* Define to 1 if printf and sprintf support %lld for long long. */
+#undef PRINTF_HAS_LLD
+
 /* Define to 1 if ANSI function prototypes are usable. */
 #undef PROTOTYPES
 
@@ -1064,6 +1067,9 @@
 /* Define to what tgetent() returns on success (0 on HP-UX X/Open curses). */
 #undef TGETENT_SUCCESS
 
+/* Define if there is no prototype for the tgoto() terminal function. */
+#undef TGOTO_PROTO_MISSING
+
 /* Define if sys/time.h and sys/select.h cannot be both included. */
 #undef TIME_H_SELECT_H_CONFLICTS
 
@@ -1087,6 +1093,9 @@
 
 /* Define if getxattr() etc. require additional MacOS-style arguments */
 #undef XATTR_EXTRA_ARGS
+
+/* Define to 1 if the zlong type uses long long int. */
+#undef ZLONG_IS_LONG_LONG
 
 /* Define to a 64 bit integer type if there is one, but long is shorter. */
 #undef ZSH_64_BIT_TYPE

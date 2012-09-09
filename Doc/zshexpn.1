@@ -1,4 +1,4 @@
-.TH "ZSHEXPN" "1" "February 22, 2011" "zsh 4\&.3\&.17"
+.TH "ZSHEXPN" "1" "July 21, 2012" "zsh 5\&.0\&.0"
 .SH "NAME"
 zshexpn \- zsh expansion and substitution
 .\" Yodl file: Zsh/expn.yo
@@ -623,6 +623,19 @@ the empty string; otherwise, just substitute the value of \fIname\fP\&.
 If \fIname\fP is an array
 the matching array elements are removed (use the `\fB(M)\fP\&' flag to
 remove the non\-matched elements)\&.
+.TP
+\fB${\fP\fIname\fP\fB:|\fP\fIarrayname\fP\fB}\fP
+If \fIarrayname\fP is the name (N\&.B\&., not contents) of an array
+variable, then any elements contained in \fIarrayname\fP are removed
+from the substitution of \fIname\fP\&.  If the substitution is scalar,
+either because \fIname\fP is a scalar variable or the expression is
+quoted, the elements of \fIarrayname\fP are instead tested against the
+entire expression\&.
+.TP
+\fB${\fP\fIname\fP\fB:*\fP\fIarrayname\fP\fB}\fP
+Similar to the preceding subsitution, but in the opposite sense,
+so that entries present in both the original substitution and as
+elements of \fIarrayname\fP are retained and others removed\&.
 .TP
 .PD 0
 \fB${\fP\fIname\fP\fB:\fP\fIoffset\fP\fB}\fP

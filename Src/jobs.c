@@ -716,17 +716,22 @@ printtime(struct timeval *real, child_times_t *ti, char *desc)
 #endif
 #ifdef HAVE_STRUCT_RUSAGE_RU_IXRSS
 	    case 'X':
-		fprintf(stderr, "%ld", (long)(ti->ru_ixrss / total_time));
+		fprintf(stderr, "%ld", 
+			total_time ?
+			(long)(ti->ru_ixrss / total_time) :
+			(long)0);
 		break;
 #endif
 #ifdef HAVE_STRUCT_RUSAGE_RU_IDRSS
 	    case 'D':
 		fprintf(stderr, "%ld",
+			total_time ? 
 			(long) ((ti->ru_idrss
 #ifdef HAVE_STRUCT_RUSAGE_RU_ISRSS
 				 + ti->ru_isrss
 #endif
-				    ) / total_time));
+				    ) / total_time) :
+			(long)0);
 		break;
 #endif
 #if defined(HAVE_STRUCT_RUSAGE_RU_IDRSS) || \
@@ -735,6 +740,7 @@ printtime(struct timeval *real, child_times_t *ti, char *desc)
 	    case 'K':
 		/* treat as D if X not available */
 		fprintf(stderr, "%ld",
+			total_time ?
 			(long) ((
 #ifdef HAVE_STRUCT_RUSAGE_RU_IXRSS
 				    ti->ru_ixrss
@@ -747,7 +753,8 @@ printtime(struct timeval *real, child_times_t *ti, char *desc)
 #ifdef HAVE_STRUCT_RUSAGE_RU_ISRSS
 				    + ti->ru_isrss
 #endif
-				    ) / total_time));
+				    ) / total_time) :
+			(long)0);
 		break;
 #endif
 #ifdef HAVE_STRUCT_RUSAGE_RU_MAXRSS
@@ -2157,10 +2164,15 @@ bin_kill(char *nam, char **argv, UNUSED(Options ops), UNUSED(int func))
 
     /* check for, and interpret, a signal specifier */
     if (*argv && **argv == '-') {
-	if (idigit((*argv)[1]))
+	if (idigit((*argv)[1])) {
+	    char *endp;
 	    /* signal specified by number */
-	    sig = atoi(*argv + 1);
-	else if ((*argv)[1] != '-' || (*argv)[2]) {
+	    sig = zstrtol(*argv + 1, &endp, 10);
+	    if (*endp) {
+		zwarnnam(nam, "invalid signal number: %s", *argv);
+		return 1;
+	    }
+	} else if ((*argv)[1] != '-' || (*argv)[2]) {
 	    char *signame;
 
 	    /* with argument "-l" display the list of signal names */

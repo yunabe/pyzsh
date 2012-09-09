@@ -1,6 +1,6 @@
-#compdef ssh slogin=ssh scp ssh-add ssh-agent ssh-keygen sftp
+#compdef ssh slogin=ssh scp ssh-add ssh-agent ssh-keygen sftp ssh-copy-id
 
-# Completions currently based on OpenSSH 5.9 (released on 2011-09-06).
+# Completions currently based on OpenSSH 6.0 (released on 2012-04-22).
 #
 # TODO: update ssh-keygen (not based on 5.9)
 # TODO: sshd, ssh-keyscan, ssh-keysign
@@ -18,7 +18,7 @@ _ssh () {
     # for protocol version 2, this can be a comma-separated list
     '-c+[select encryption cipher]:encryption cipher:(idea des 3des blowfish arcfour tss none)'
     '-F+[specify alternate config file]:config file:_files'
-    '-i+[select identity file]:SSH identity file:_files'
+    '*-i+[select identity file]:SSH identity file:_files'
     '*-o+[specify extra options]:option string:->option'
   )
   common_transfer=(
@@ -50,7 +50,7 @@ _ssh () {
       '(-1)-m+[specify mac algorithms]:mac spec:->macs' \
       '(-1)-N[do not execute a remote command (protocol version 2 only)]' \
       '-n[redirect stdin from /dev/null]' \
-      '-O:multiplex control command:((check\:"check master process is running" exit\:"request the master to exit" forward\:"request forward without command execution" stop\:"request the master to stop accepting further multiplexing requests"))' \
+      '-O:multiplex control command:((check\:"check master process is running" exit\:"request the master to exit" forward\:"request forward without command execution" stop\:"request the master to stop accepting further multiplexing requests" cancel\:"cancel existing forwardings with -L and/or -R"))' \
       '-P[use non privileged port]' \
       '-p+[specify port on remote host]:port number on remote host' \
       '(-v)*-q[quiet operation]' \
@@ -132,6 +132,11 @@ _ssh () {
       '-R[specify number of outstanding requests]:number of requests (default\: 64):' \
       '-s[SSH2 subsystem or path to sftp server on the remote host]' \
       '1:file:->rfile' '*:file:->file' "$common[@]" "$common_transfer[@]" && ret=0
+    ;;
+  (ssh-copy-id)
+    _arguments \
+      '-i:SSH identity file:_files' \
+      ':remote host name:->userhost' \
     ;;
   esac
 

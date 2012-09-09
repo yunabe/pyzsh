@@ -1,3 +1,449 @@
+2012-07-21  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: update for 5.0.0 release.
+
+2012-07-17  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* users/17051 (cf. 30571): Completion/compinit: explicit IFS for
+	"read" of bindkey, dumpfiles, etc.
+
+2012-07-15  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Bart: 30560: Src/builtin.c: unset array element by setting
+	to null.
+
+2012-07-08  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Danek: 30562: Completion/Solaris/Command/_dladm,
+	Completion/Solaris/Command/_flowadm,
+	Completion/Solaris/Command/_ipadm,
+	Completion/Solaris/Command/_zoneadm,
+	Completion/Unix/Command/_zfs, Completion/Unix/Command/_zpool,
+	Completion/Unix/Type/_zfs_dataset: Solaris completion updates.
+
+2012-06-30  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30540: Src/builtin.c: process the rest of the typeset flags when
+	changing the numeric type of SECONDS e.g. from integer to float.
+
+2012-06-27  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: belatedly commit version number update.
+
+2012-06-26  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30533: Src/utils.c: when processing a change in the value of
+	COLUMNS, do not assert the change into the tty driver winsize.
+	The code for this was dead the whole time IPDEF5 was broken and
+	this seems a bad time to make it live; besides which it is not
+	consistent about the handling of LINES (which is ignored when
+	changed by itself, but would be asserted when COLUMNS changes).
+
+	* 30530: Src/params.c: fix long-broken IPDEF5 definition to use
+	the GSU struct, thus fixing problems with values of LINES or
+	COLUMNS less than 1.
+
+2012-06-21  Peter Stephenson  <pws@csr.com>
+
+	* Danek (plus .distfiles changes): 30520:
+	Completion/Solaris/Command/.distfiles:
+	Completion/Solaris/Command/_beadm,
+	Completion/Solaris/Command/_dladm,
+	Completion/Solaris/Command/_dtrace,
+	Completion/Solaris/Command/_flowadm,
+	Completion/Solaris/Command/_fmadm,
+	Completion/Solaris/Command/_ipadm,
+	Completion/Solaris/Command/_netstat,
+	Completion/Solaris/Command/_pkg5,
+	Completion/Solaris/Command/_prstat,
+	Completion/Solaris/Command/_ps,
+	Completion/Solaris/Command/_snoop,
+	Completion/Solaris/Command/_svcadm,
+	Completion/Solaris/Command/_svccfg,
+	Completion/Solaris/Command/_svcprop,
+	Completion/Solaris/Command/_zlogin,
+	Completion/Solaris/Command/_zoneadm,
+	Completion/Solaris/Type/.distfiles,
+	Completion/Solaris/Type/_be_name,
+	Completion/Solaris/Type/_svcs_fmri,
+	Completion/Solaris/Type/_zones,
+	Completion/Unix/Command/_zfs,
+	Completion/Unix/Command/_zpool,
+	Completion/Unix/Type/.distfiles,
+	Completion/Unix/Type/_zfs_dataset,
+	Completion/Unix/Type/_zfs_keysource_props: updated completions
+	for Solaris 11.
+
+	* 30518: configure.ac, Src/zsh_system.h: attempt to supply
+	tgoto() prototype only when missing for Solaris 10 and earlier.
+
+	* 30519 (correction noticed by Danek): MACHINES: try to
+	modernise.
+
+2012-06-18  Peter Stephenson  <pws@csr.com>
+
+	* Dima Kogan: 30515: Src/glob.c: glob size test failed on very
+	large files owing to integer type error.
+
+2012-06-15 Phil Pennock  <pdpennock@users.sourceforge.net>
+
+	* 30513: zsh/regex metafy fixes for widechar; similar to 29838.
+
+2012-06-15  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30509: FEATURES, README, Etc/FAQ.yo: updates for 5.0.0.
+
+	* Danek: 30510: Doc/Zsh/params.yo: bad indentation.
+
+2012-06-10  Clint Adams  <clint@zsh.org>
+
+	* 30503: Completion/Unix/Command/_mosh: rudimentary
+	completion for mosh.
+
+2012-06-10  Mikael Magnusson  <mikachu@gmail.com>
+
+	* Jeremy Mates: 30505: Completion/Unix/Command/_wget: Allow
+	multiple --header=.
+
+2012-06-06  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* users/17134: Functions/Misc/promptnl: avoid bad math error
+
+2012-06-06  Peter Stephenson  <pws@csr.com>
+
+	* Vincent: 30497: Completion/Unix/Command/_xmlsoft: option
+	completion issue.
+
+2012-06-04  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* users/17132: Doc/Zsh/contrib.yo,
+	Functions/Zle/forward-word-match,
+	Functions/Zle/select-word-style: skip-whitespace-first style for
+	compatibility with bash and other editors in forward-word.
+
+2012-05-31  Peter Stephenson  <pws@csr.com>
+
+	* Foudil Brétel: 30495: Completion/Unix/Command/_systemd (also
+	Completion/Unix/Command/.distfiles): replace
+	Completion/Unix/Command/_systemctl and add various enhancements.
+
+2012-05-23  Frank Terbeck  <ft@bewatermyfriend.org>
+
+	* Juliano Ravasi: 30488:
+	Functions/VCS_Info/Backends/VCS_INFO_get_data_git: Fix
+	initialisation of `$stgit_unapplied'.
+
+2012-05-22  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Jun T.: 30483: Completion/Unix/Command/_mount: improved
+	completion on MacOS.
+
+	* Danek: 30485: Src/jobs.c: trailing garbage after signal
+	number not recognised in kill builtin.
+
+2012-05-21  Peter Stephenson  <pws@csr.com>
+
+	* c.f 30482 (Peter Jaros): Completion/Unix/Command/_tmux: typo
+	in description.
+
+2012-05-17  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30473: Completion/Linux/Command/_strace: update for 4.7 and
+	mark all options as taking sticked arguments.
+
+	* 30474: Completion/Unix/Command/_ssh: Add -O cancel.
+
+2012-05-14  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30468: Functions/Prompts/prompt_fade_setup: add missing $
+	reported by Devon Meunier.
+
+	* 30466: Completion/Unix/Type/.distfiles,
+	Completion/Unix/Type/_ps1234, Completion/Zsh/Command/_print:
+	Add new completer for prompt format specifiers and hook it up
+	to print -P and assigning to the various prompt parameters.
+	Add completion for printf and print -f formats.
+
+2012-05-08  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* unposted, see users/17062: Doc/Zsh/contrib.yo: Briefly describe
+	option semantic differences from xargs to zargs.  (Merged with
+	PWS edits.)
+
+2012-05-08  Peter Stephenson  <pws@csr.com>
+
+	* 30469: Src/builtin.c: allow reverse listing of history using
+	fc -r, but don't allow reverse execution of commands at all.
+
+	* unposted: Doc/Zsh/contrib.yo: clarify that zargs is different
+	from xargs.
+
+2012-05-03  Peter Stephenson  <pws@csr.com>
+
+	* unposted, see 30465: Doc/Zsh/expn.yo, Doc/Zsh/params.yo: add
+	index entries and cross-references for matching parameters.
+
+2012-05-02  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30461, 30462 (tweaked): Functions/Prompts/promptinit,
+	Functions/VCS_Info/vcs_info_setsys, Functions/Zftp/zfcd_match,
+	Functions/Zle/url-quote-magic: add missing local for match,
+	mbegin and mend.
+
+	* 30425 (fixed): Src/Zle/zle_params.c, Doc/Zsh/zle.yo:
+	Add localhistory/globalhistory to $ZLE_STATE as set by the
+	set-local-history zle widget.
+
+2012-05-01  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* users/17046: Src/utils.c, Test/D04parameter.ztst: don't
+	count too many elements when splitting quoted parameter
+	substitution on null separator.
+
+2012-05-01  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30456: Completion/Unix/Command/_getconf: Use new array syntax.
+
+2012-04-25  Peter Stephenson  <pws@csr.com>
+
+	* 30455: NEWS, Src/params.c: remove max array length test.
+
+2012-04-25  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30429: Completion/Unix/Command/_init_d: Avoid error when the
+	service doesn't exist.
+
+	* 30430: Doc/intro.ms: Fix some errors and outdatedness.
+
+	* 30444: NEWS: Add entry for new syntax added in 30431 below.
+
+2012-04-22  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: Src/subst.c: add test for valid identifier to 30431.
+
+	* Test/D04parameter.ztst: 30439: Src/subst.c,
+	Test/D04parameter.ztst: ${...:*...} with nonexistent or
+	non-array variable second should return no results.
+
+	* 30431 (typo in _typeset fixed):
+	Completion/Zsh/Command/_typeset, Doc/Zsh/expn.yo, Src/params.c,
+	Src/subst.c, Test/D04parameter.ztst:  add ${...:|...} and
+	${...:*...} operators for removal or inclusion of results
+	by array element.
+
+2012-04-21  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30433: Src/hist.c: double backslash is not line continuation.
+
+2012-04-20  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30412: Doc/Zsh/zle.yo: Document the set-local-history
+	widget in the list of widgets.
+
+	* Vin Shelton: 30427: Doc/Zsh/zle.yo: Remove erroneous enditem
+	from previous commit.
+
+2012-04-16  Peter Stephenson  <pws@csr.com>
+
+	* Michael Prokop: 30414: Completion/Linux/Command/_mdadm: more
+	flexible configuration file usage.
+
+	* 30413: Src/params.c, Src/utils.c, Test/D04parameter.ztst:
+	(q-) parameter flag should quote the empty string and should
+	report an error with extra trailing q's.
+
+2012-04-15  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: NEWS: incorporate the remainder of Bart's
+	suggestions from 30408.
+
+	* 30410 (with the addition of one other case): Src/jobs.c: avoid
+	some divide-by-zero errors in TIMEFMT interpretation.
+
+2012-04-14  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30402: Doc/.distfiles, Doc/Makefile.in: turn intro.ms into
+	intro.pdf for doc distribution.  Still needs some tidy ups.
+
+2012-04-14  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30406: NEWS: some typo fixes.
+
+2012-04-13  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: Etc/.distfiles: missed this.
+
+	* Christian Neukirchen: 30398, 30399: Doc/params.yo: TIMEFMT
+	documentation.
+
+	* 30400 (plus a few extra tweaks): NEWS, Etc/NEWS-4.3: update
+	NEWS for forthcoming 5.0 release.
+
+2012-04-13  Peter Stephenson  <pws@csr.com>
+
+	* 30391: Src/params.c: New hash-based arrayuniq() doesn't
+	care about (or set the flag correctly for) disabled hash nodes,
+	so we need to ignore that flag.
+
+2012-04-12  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* 30388, 30389 (Stephane): Functions/Misc/zargs: handle
+	zero-length arguments.
+
+2012-04-09  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* unposted: Test/D04parameter.ztst: hash seive needs more than 10
+	array elements for arrayuniq() testing.  This test will need to
+	be tweaked if that size changes.
+
+	* unposted (see users/17000): Src/params.c: fix allocation bug in
+	16991 by using heap memory for hash nodes; throw an error if out
+	of heap; pull hash table creation out into a helper function and
+	use arrlen() to count the array.
+
+	* Václav Zeman: users/16991: Src/params.c: implement hash-table
+	seive variant of arrayuniq() to improve speed at cost of space,
+	falls back on the constant-space version for small arrays.
+
+	* 30383: Src/params.c: improve the constant-space variant of
+	arrayuniq() by optimizing shifts.
+
+2012-04-01  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* users/16944: Functions/Zle/url-quote-magic: some more "local"s
+	needed.
+
+2012-03-30  Peter Stephenson  <pws@csr.com>
+
+	* unposted: Functions/Zle/split-shell-arguments: add some
+	typeset -g's to avoid WARN_CREATE_GLOBAL warnings.
+
+	* unposted: Src/init.c: add some braces to avoid warnings from
+	some versions of gcc.
+
+2012-03-29  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* unposted: Doc/Zsh/zle.yo: add missing parenthesis.
+
+	* users/16932: Doc/Zsh/zle.yo, Functions/Zle/replace-string:
+	Src/Zle/zle.h, Src/Zle/zle_params.c, Src/Zle/zle_utils.c:
+	implement $UNDO_CHANGE_NO and argument to undo widget.
+
+2012-03-25  Mikael Magnusson  <mikachu@gmail.com>
+
+	* Jesper Nygårds: 30378: Completion/Unix/Command/.distfiles,
+	Completion/Unix/Command/_gradle: new gradle completion.
+
+2012-03-24  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30371: Completion/Unix/Command/_ssh: You can specify -i
+	multiple times.
+
+	* 30372: Completion/Unix/Command/_tmux: Redirect error output
+	produced when no tmux server is running to /dev/null.
+
+	* 30368: Completion/Unix/Command/_tmux: Make completion work
+	when an unambiguous prefix for a known subcommand is given, as
+	in 'tmux att -<tab>'.
+
+2012-03-23  Simon Ruderich  <simon@ruderich.org>
+
+	* 30366: Misc/vcs_info-examples: Fix outdated quilt examples.
+	* 30367: Doc/Zsh/contrib.yo: vcs_info, mention settings used for
+	patch-format/nopatch-format.
+
+2012-03-13  Peter Stephenson  <pws@csr.com>
+
+	* Luka Perkov: 30354: Completion/Unix/Command/_quilt: update
+
+	* 30351 changed as in 30352: Src/params.c, Src/utils.c: metafy
+	scalar and array parameter values as they are imported from
+	strings defined outside zsh.
+
+2012-03-07  Peter Stephenson  <pws@csr.com>
+
+	* users/16865: Doc/Zsh/cond.yo: note that -eq and friends are
+	less convenient for purely numeric work than conditional
+	expressions.
+
+2012-03-06  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Alexey: 30322: Completion/Unix/Command/_xmlsoft: accept more
+	file types.
+
+2012-03-06  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30320: Doc/Zsh/builtins.yo, Src/builtin.c, Src/init.c,
+	Src/options.c: "emulate" accepts invocation-time setopt flags
+	after the shell name, in addition to "-c command".
+
+	* 30320 (bonus): Doc/Zsh/params.yo: document interaction of
+	sun_keyboard_hack with the KEYBOARD_HACK paramter.
+
+	* 30320 (misc.): Etc/FAQ.yo: rectify a minor omission.
+
+2012-03-05  Clint Adams  <clint@zsh.org>
+
+	* 30314: Completion/Unix/Command/_ssh: add completion for
+	ssh-copy-id.
+
+	* 30316: Completion/Unix/Type/_pdf: complete .pdf for evince and
+	epdfview.
+
+	* 30317: Completion/Unix/Command/_git: complete git merge --ff-only
+
+2012-03-05  Peter Stephenson  <pws@csr.com>
+
+	* 30307 plus change suggested by Wayne in 30309: configure.ac,
+	Src/exec.c, Src/glob.c, Src/prompt.c, Src/utils.c,
+	Src/Modules/parameter.c: use %lld format where available when
+	zlong is long long.
+
+2012-03-01  Peter Stephenson  <pws@csr.com>
+
+	* 30303: Doc/builtins.yo, Src/options.c: emulate executed inside
+	a function marked for execution tracing enables xtrace.
+
+2012-02-29  Barton E. Schaefer  <schaefer@zsh.org>
+
+	* 30272 (tweaked): Src/exec.c: most failures of fork() cause
+	non-interactive shells to exit nonzero; bad options to "exec"
+	cause exit under POSIX_BUILTINS behavior.
+
+	* unposted (see users/16715): Doc/Zsh/options.yo: document the
+	effects of HASH_LIST_ALL on spelling correction.
+
+	* 30184: Src/hashtable.c: the HASH_EXECUTABLES_ONLY test matches
+	the test used during path search in exec.c:iscom().
+
+	* unposted (see 30090): Functions/Misc/add-zsh-hook: add -h and
+	-L options for help text and a list of extant hooks respectively.
+
+	* unposted (see users/16697): Functions/Misc/zkbd: select a more
+	reasonable output file name when the DISPLAY variable refers to a
+	local socket file (MacOS); fix problem with writing the output
+	file when the user overrides the default value of TERM.
+
+2012-02-29  Mikael Magnusson  <mikachu@gmail.com>
+
+	* 30276: Src/glob.c: Use zlong rather than int when calculating
+	brace expansions of the form {1..9}.
+
+2012-02-29  Peter Stephenson  <pws@csr.com>
+
+	* 30299: Src/subst.c, Test/D04parameter.ztst: "$*" was split
+	in SHWORDSPLIT if IFS was unset or empty.
+
+2012-02-26  Peter Stephenson  <p.w.stephenson@ntlworld.com>
+
+	* Alexey I. Froloff: 30270: Test/C02cond.ztst: we don't care
+	about errors from df when testing whether the file system has
+	noatime.
+
+	* unposted: Config/version.mk: Update version to 4.3.17-dev-0 to
+	avoid clash with release, also fix incorrect year noticed by
+	Darryl Zurn.
+
 2012-02-23  Peter Stephenson  <p.w.stephenson@ntlworld.com>
 
 	* unposted: 4.3.17.
@@ -9,7 +455,7 @@
 
 2012-02-20  Barton E. Schaefer  <schaefer@zsh.org>
 
-	* 30242: Src/subst.c, Test/D05parameter.ztst: use PREFORK_SINGLE
+	* 30242: Src/subst.c, Test/D04parameter.ztst: use PREFORK_SINGLE
 	for the right-hand side of ${...=...} when SH_WORD_SPLIT is in
 	effect (POSIX emulation).
 
@@ -16010,5 +16456,5 @@
 
 *****************************************************
 * This is used by the shell to define $ZSH_PATCHLEVEL
-* $Revision: 1.5594 $
+* $Revision: 1.5681 $
 *****************************************************

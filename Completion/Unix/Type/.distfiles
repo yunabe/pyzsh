@@ -36,6 +36,7 @@ _pids
 _ports
 _printers
 _ps
+_ps1234
 _pspdf
 _services
 _signals
@@ -49,5 +50,6 @@ _user_at_host
 _users
 _users_on
 _zfs_dataset
+_zfs_keysource_props
 _zfs_pool
 '

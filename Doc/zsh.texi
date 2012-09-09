@@ -29,8 +29,8 @@
 @end iftex
 @titlepage
 @title The Z Shell Manual
-@subtitle Version 4.3.17
-@subtitle Updated February 22, 2011
+@subtitle Version 5.0.0
+@subtitle Updated July 21, 2012
 @author Original documentation by Paul Falstad
 @page
 This is a texinfo version of the documentation for the Z Shell, originally by 
@@ -63,7 +63,7 @@ This Info file documents Zsh, a freely available UNIX command interpreter
 
 @noindent
 @cindex version
-Version 4.3.17, last updated February 22, 2011.
+Version 5.0.0, last updated July 21, 2012.
 @end ifinfo
 
 @menu
@@ -3283,6 +3283,10 @@ based on ASCII value of their characters.
 
 @item @var{exp1} @t{-eq} @var{exp2}
 true if @var{exp1} is numerically equal to @var{exp2}.
+Note that for purely numeric comparisons use of the
+@t{((}@var{...}@t{))} builtin described in
+@ref{Arithmetic Evaluation} is more convenient than
+conditional expressions.
 
 @item @var{exp1} @t{-ne} @var{exp2}
 true if @var{exp1} is numerically not equal to @var{exp2}.
@@ -4428,6 +4432,19 @@ the empty string; otherwise, just substitute the value of @var{name}.
 If @var{name} is an array
 the matching array elements are removed (use the `@t{(M)}' flag to
 remove the non-matched elements).
+
+@item @t{$@{}@var{name}@t{:|}@var{arrayname}@t{@}}
+If @var{arrayname} is the name (N.B., not contents) of an array
+variable, then any elements contained in @var{arrayname} are removed
+from the substitution of @var{name}.  If the substitution is scalar,
+either because @var{name} is a scalar variable or the expression is
+quoted, the elements of @var{arrayname} are instead tested against the
+entire expression.
+
+@item @t{$@{}@var{name}@t{:*}@var{arrayname}@t{@}}
+Similar to the preceding subsitution, but in the opposite sense,
+so that entries present in both the original substitution and as
+elements of @var{arrayname} are retained and others removed.
 
 @item @t{$@{}@var{name}@t{:}@var{offset}@t{@}}
 @itemx @t{$@{}@var{name}@t{:}@var{offset}@t{:}@var{length}@t{@}}
@@ -5909,6 +5926,9 @@ upper case characters.
 Case sensitive:  locally negates the effect of @t{i} or @t{l} from
 that point on.
 
+@vindex match
+@vindex mbegin
+@vindex mend
 @item @t{b}
 Activate backreferences for parenthesised groups in the pattern;
 this does not work in filename generation.  When a pattern with a set of
@@ -5986,6 +6006,9 @@ matches; @t{(#c,}@var{M}@t{)} is equivalent to specifying @var{N}
 as 0; @t{(#c}@var{N}@t{,)} specifies that there is no maximum
 limit on the number of matches.
 
+@vindex MATCH
+@vindex MBEGIN
+@vindex MEND
 @item @t{m}
 Set references to the match data for the entire string matched; this is
 similar to backreferencing and does not work in filename generation.  The
@@ -6941,6 +6964,7 @@ example (assuming the option @t{KSH_ARRAYS} is not in effect):
 
 @noindent
 If @t{KSH_ARRAYS} is in effect, the @t{-le} should be replaced by @t{-lt}.
+
 @item @t{R}
 Like `@t{r}', but gives the last match.  For associative arrays, gives
 all possible matches. May be used for assigning to ordinary array
@@ -6962,7 +6986,6 @@ required; using a parameter to hold the key has the desired effect:
 key2='original key'
 print $@{array[(Re)$key2]@}
 @end example
-
 
 @item @t{i}
 Like `@t{r}', but gives the index of the match instead; this may not be
@@ -7765,6 +7788,11 @@ backquotes only.  Should the chosen character be one of singlequote,
 doublequote or backquote, there must also be an odd number of them
 on the command line for the last one to be removed.
 
+@noindent
+For backward compabitility, if the @t{SUNKEYBOARDHACK} option is
+explicitly set, the value of @t{KEYBOARD_HACK} reverts to backquote.
+If the option is explicitly unset, this variable is set to empty.
+
 @vindex KEYTIMEOUT
 @item @t{KEYTIMEOUT}
 The time the shell waits, in hundredths of seconds, for another key to
@@ -7859,6 +7887,20 @@ An array (colon-separated list)
 whose value is not used by the shell.  The @t{manpath}
 array can be useful, however, since setting it also sets
 @t{MANPATH}, and vice versa.
+
+@item @t{match}
+@itemx @t{mbegin}
+@itemx @t{mend}
+Arrays set by the shell when the @t{b} globbing flag is used in pattern
+matches.  See the subsection @emph{Globbing flags} in
+@ref{Filename Generation}.
+
+@item @t{MATCH}
+@itemx @t{MBEGIN}
+@itemx @t{MEND}
+Set by the shell when the @t{m} globbing flag is used in pattern
+matches.  See the subsection @emph{Globbing flags} in
+@ref{Filename Generation}.
 
 @vindex module_path
 @vindex MODULE_PATH
@@ -8044,7 +8086,7 @@ the workaround `@t{TERM=$TERM}' unnecessary.
 @vindex TIMEFMT
 @item @t{TIMEFMT}
 The format of process time reports with the @t{time} keyword.
-The default is `@t{%E real  %U user  %S system  %P %J}'.
+The default is `@t{%J  %U user %S system %P cpu %*E total}'.
 Recognizes the following escape sequences, although not all
 may be available on all systems, and some that are available
 may not be useful:
@@ -8065,15 +8107,15 @@ The CPU percentage, computed as
 @item @t{%W}
 Number of times the process was swapped.
 @item @t{%X}
-The average amount in (shared) text space used in Kbytes.
+The average amount in (shared) text space used in kilobytes.
 @item @t{%D}
 The average amount in (unshared) data/stack space used in
-Kbytes.
+kilobytes.
 @item @t{%K}
-The total space used (%X+%D) in Kbytes.
+The total space used (%X+%D) in kilobytes.
 @item @t{%M}
 The  maximum memory the process had in use at any time in
-Kbytes.
+megabytes.
 @item @t{%F}
 The number of major page faults (page needed to be brought
 from disk).
@@ -8638,8 +8680,9 @@ on the @t{GLOB_COMPLETE} option does not have this effect.
 @pindex HASHLISTALL
 @pindex NOHASHLISTALL
 @item @t{HASH_LIST_ALL} <D>
-Whenever a command completion is attempted, make sure the entire
-command path is hashed first.  This makes the first completion slower.
+Whenever a command completion or spelling correction is attempted, make
+sure the entire command path is hashed first.  This makes the first
+completion slower but avoids false reports of spelling errors.
 
 @pindex LIST_AMBIGUOUS
 @pindex NO_LIST_AMBIGUOUS
@@ -11308,7 +11351,7 @@ See @ref{The zsh/terminfo Module}.
 @cindex sh, compatibility
 @cindex ksh, compatibility
 @cindex csh, compatibility
-@item @t{emulate} [ @t{-LR} ] [ @{@t{zsh}|@t{sh}|@t{ksh}|@t{csh}@} [ @t{-c} @t{arg} ] ]
+@item @t{emulate} [ @t{-LR} ] [ @{@t{zsh}|@t{sh}|@t{ksh}|@t{csh}@} [ @var{flags} ... ] ]
 Without any argument print current emulation mode.
 
 @noindent
@@ -11323,28 +11366,43 @@ based on the shell name, see
 .
 
 @noindent
-If the @t{-R} option is given, all options
+If the @t{emulate} command occurs inside a function that has been
+marked for execution tracing with @t{functions -t} then the @t{xtrace}
+option will be turned on regardless of emulation mode or other options.
+Note that code executed inside the function by the @t{.}, @t{source}, or
+@t{eval} commands is not considered to be running directly from the
+function, hence does not provoke this behaviour.
+
+@noindent
+If the @t{-R} switch is given, all settable options
 are reset to their default value corresponding to the specified emulation
 mode, except for certain options describing the interactive
 environment; otherwise, only those options likely to cause portability
-problems in scripts and functions are altered.  If the @t{-L} option is given,
+problems in scripts and functions are altered.  If the @t{-L} switch is given,
 the options @t{LOCAL_OPTIONS} and @t{LOCAL_TRAPS} will be set as
 well, causing the effects of the @t{emulate} command and any @t{setopt} and
 @t{trap} commands to be local to the immediately surrounding shell
 function, if any; normally these options are turned off in all emulation
-modes except @t{ksh}. The @t{-L} and @t{-c} are mutually exclusive.
+modes except @t{ksh}. The @t{-L} switch is mutually exclusive with the
+use of @t{-c} in @var{flags}.
 
 @noindent
-If @t{-c} @t{arg} is given, evaluate @t{arg} while the requested
-emulation is temporarily in effect.  The emulation and all options will
-be restored to their original values before @t{emulate} returns.  The
-@t{-R} flag may be used.
+The @var{flags} may be any of the invocation-time flags described in
+@ref{Invocation},
+except that `@t{-o EMACS}' and `@t{-o VI}' may not be used.  Flags such
+as `@t{+r}'/`@t{+o RESTRICTED}' may be prohibited in some circumstances.
+If @t{-c} @var{arg} appears in @var{flags}, @var{arg} is evaluated while the
+requested emulation is temporarily in effect.  In this case the emulation
+mode and all options are restored to their previous values before
+@t{emulate} returns.  The @t{-R} switch may precede the name of the shell
+to emulate; note this has a meaning distinct from including @t{-R} in
+@var{flags}.
 
 @noindent
 Use of @t{-c} enables `sticky' emulation mode for functions defined
 within the evaluated expression:  the emulation mode is associated
 thereafter with the function so that whenever the function is executed
-the emulation (respecting the @t{-R} flag, if present) and all
+the emulation (respecting the @t{-R} switch, if present) and all
 options are set before entry to the function, and restored after exit.
 If the function is called when the sticky emulation is already in
 effect, either within an `@t{emulate} @var{shell} @t{-c}' expression or
@@ -11396,7 +11454,7 @@ No special handling is provided for functions marked for
 @t{autoload} nor for functions present in wordcode created by
 the @t{zcompile} command.
 @item 4.
-The presence or absence of the @t{-R} flag to @t{emulate}
+The presence or absence of the @t{-R} switch to @t{emulate}
 corresponds to different sticky emulation modes, so for example
 `@t{emulate sh -c}', `@t{emulate -R sh -c}' and `@t{emulate csh -c}'
 are treated as three distinct sticky emulations.
@@ -14486,6 +14544,12 @@ any predisplay string should be highlighted in bold.
 Note that the effect of @t{region_highlight} is not saved and disappears
 as soon as the line is accepted.
 
+@vindex UNDO_CHANGE_NO
+@item @t{UNDO_CHANGE_NO} (integer)
+A number representing the state of the undo history.  The only use
+of this is passing as an argument to the @t{undo} widget in order to
+undo back to the recorded point.  Read-only.
+
 @vindex WIDGET
 @item @t{WIDGET} (scalar)
 The name of the widget currently being executed; read-only.
@@ -14512,11 +14576,24 @@ Contains a set of space-separated words that describe the current @t{zle}
 state.
 
 @noindent
-Currently, the only state shown is the insert mode as set by the
-@t{overwrite-mode} or @t{vi-replace} widgets.  The string contains
-`@t{insert}' if characters to be inserted on the command line move existing
-characters to the right, `@t{overwrite}' if characters to be inserted
-overwrite existing characters.
+Currently, the states shown are the insert mode as set by the
+@t{overwrite-mode} or @t{vi-replace} widgets and whether history commands
+will visit imported entries as controlled by the set-local-history widget.
+The string contains `@t{insert}' if characters to be inserted on the
+command line move existing characters to the right or `@t{overwrite}'
+if characters to be inserted overwrite existing characters. It contains
+`@t{localhistory}' if only local history commands will be visited or
+`@t{globalhistory}' if imported history commands will also be visited.
+
+@noindent
+The substrings are sorted in alphabetical order so that if you want to
+test for two specific substrings in a future-proof way, you can do match
+by doing:
+
+@noindent
+@example
+if [[ $ZLE_STATE == *insert*globalhistory* ]]; then ...; fi
+@end example
 
 @end table
 
@@ -15126,6 +15203,13 @@ Move to the previous event in the history list.
 Search forward in the history for a line beginning with the current
 line up to the cursor.
 This leaves the cursor in its original position.
+
+@tindex set-local-history
+@item @t{set-local-history}
+By default, history movement commands visit the imported lines as well as
+the local lines. This widget lets you toggle this on and off, or set it with
+the numeric argument. Zero for both local and imported lines and nonzero for
+only local lines.
 
 @end table
 @node Modifying Text, Arguments, History Control, Zle Widgets
@@ -15858,7 +15942,10 @@ command is typed.  By default it beeps.
 
 @tindex undo
 @item @t{undo} (^_ ^Xu ^X^U) (unbound) (unbound)
-Incrementally undo the last text modification.
+Incrementally undo the last text modification.  When called from a
+user-defined widget, takes an optional argument indicating a previous state
+of the undo history as returned by the @t{UNDO_CHANGE_NO} variable;
+modifications are undone until that state is reached.
 
 @tindex redo
 @item @t{redo}
@@ -30714,7 +30801,7 @@ distribution in your home directory, you would use the commands:
 mkdir ~/zsh_help
 cd ~/zsh_help
 man zshall | colcrt - | \ 
-perl ~/zsh-4.3.17/Util/helpfiles
+perl ~/zsh-5.0.0/Util/helpfiles
 @end example
 
 @noindent
@@ -30870,7 +30957,7 @@ Run @t{zkbd} either as an autoloaded function, or as a shell script:
 
 @noindent
 @example
-zsh -f ~/zsh-4.3.17/Functions/Misc/zkbd
+zsh -f ~/zsh-5.0.0/Functions/Misc/zkbd
 @end example
 
 @noindent
@@ -30935,7 +31022,7 @@ command and redirect the output into a file:
 
 @noindent
 @example
-. ~/zsh-4.3.17/Util/reporter > zsh.report
+. ~/zsh-5.0.0/Util/reporter > zsh.report
 @end example
 
 @noindent
@@ -31912,9 +31999,9 @@ In @t{patch-format} and @t{nopatch-format} these replacements are done:
 @noindent
 @table @asis
 @item @t{%p}
-The name of the top-most applied patch.
+The name of the top-most applied patch (@t{applied-string}).
 @item @t{%u}
-The number of unapplied patches.
+The number of unapplied patches (@t{unapplied-string}).
 @item @t{%n}
 The number of applied patches.
 @item @t{%c}
@@ -32825,6 +32912,17 @@ stripping of quotes.  Special handling is done between words: the current
 context is examined and if it contains the string @t{back}, the word before
 the cursor is considered, else the word after cursor is considered. Some
 examples are given below.
+
+@noindent
+The style @t{skip-whitespace-first} is only used with the
+@t{forward-word} widget.  If it is set to true, then @t{forward-word}
+skips any non-word-characters, followed by any non-word-characters:
+this is similar to the behaviour of other word-orientated widgets,
+and also that used by other editors, however it differs from the
+standard zsh behaviour.  When using @t{select-word-style} the widget
+is set in the context @t{:zle:*} to @t{true} if the word style is
+@t{bash} and @t{false} otherwise.  It may be overridden by setting it in
+the more specific context @t{:zle:forward-word*}.
 
 @noindent
 Here are some examples of use of the styles, actually taken from the
@@ -34933,11 +35031,11 @@ game.
 
 @findex zargs
 @item @t{zargs} [ @var{option} ... @t{-}@t{-} ] [ @var{input} ... ] [ @t{-}@t{-} @var{command} [ @var{arg} ... ] ]
-This function works like GNU xargs, except that instead of reading lines
-of arguments from the standard input, it takes them from the command line.
-This is useful because zsh, especially with recursive glob operators,
-often can construct a command line for a shell function that is longer
-than can be accepted by an external command.
+This function has a similar purpose to GNU xargs.  Instead of
+reading lines of arguments from the standard input, it takes them from
+the command line.  This is useful because zsh, especially with recursive
+glob operators, often can construct a command line for a shell function
+that is longer than can be accepted by an external command.
 
 @noindent
 The @var{option} list represents options of the @t{zargs} command itself,
@@ -34983,7 +35081,16 @@ This is a good choice in that example because no plain file can be named
 `@t{..}', but the best end-marker depends on the circumstances.
 
 @noindent
-For details of the other @t{zargs} options, see man page xargs(1) or run
+The options @t{-i}, @t{-I}, @t{-l}, @t{-L}, and @t{-n} differ slightly
+from their usage in @t{xargs}.  There are no input lines for @t{zargs} to
+count, so @t{-l} and @t{-L} count through the @var{input} list, and @t{-n}
+counts the number of arguments passed to each execution of @var{command},
+@emph{including} any @var{arg} list.  Also, any time @t{-i} or @t{-I} is used,
+each @var{input} is processed separately as if by `@t{-L} @t{1}'.
+
+@noindent
+For details of the other @t{zargs} options, see man page xargs(1) (but note
+the difference in function between @t{zargs} and @t{xargs}) or run
 @t{zargs} with the @t{-}@t{-help} option.
 
 @findex zed

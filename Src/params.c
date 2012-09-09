@@ -315,7 +315,7 @@ IPDEF4("LINENO", &lineno),
 IPDEF4("PPID", &ppid),
 IPDEF4("ZSH_SUBSHELL", &zsh_subshell),
 
-#define IPDEF5(A,B,F) {{NULL,A,PM_INTEGER|PM_SPECIAL},BR((void *)B),GSU(varinteger_gsu),10,0,NULL,NULL,NULL,0}
+#define IPDEF5(A,B,F) {{NULL,A,PM_INTEGER|PM_SPECIAL},BR((void *)B),GSU(F),10,0,NULL,NULL,NULL,0}
 IPDEF5("COLUMNS", &zterm_columns, zlevar_gsu),
 IPDEF5("LINES", &zterm_lines, zlevar_gsu),
 IPDEF5("OPTIND", &zoptind, varinteger_gsu),
@@ -698,16 +698,18 @@ createparamtable(void)
      * So allow the user to set it in the special cases where it's
      * useful.
      */
-    setsparam("TMPPREFIX", ztrdup(DEFAULT_TMPPREFIX));
-    setsparam("TIMEFMT", ztrdup(DEFAULT_TIMEFMT));
-    setsparam("WATCHFMT", ztrdup(default_watchfmt));
+    setsparam("TMPPREFIX", ztrdup_metafy(DEFAULT_TMPPREFIX));
+    setsparam("TIMEFMT", ztrdup_metafy(DEFAULT_TIMEFMT));
+    setsparam("WATCHFMT", ztrdup_metafy(default_watchfmt));
 
     hostnam = (char *)zalloc(256);
     gethostname(hostnam, 256);
-    setsparam("HOST", ztrdup(hostnam));
+    setsparam("HOST", ztrdup_metafy(hostnam));
     zfree(hostnam, 256);
 
-    setsparam("LOGNAME", ztrdup((str = getlogin()) && *str ? str : cached_username));
+    setsparam("LOGNAME",
+	      ztrdup_metafy((str = getlogin()) && *str ?
+			    str : cached_username));
 
 #if !defined(HAVE_PUTENV) && !defined(USE_SET_UNSET_ENV)
     /* Copy the environment variables we are inheriting to dynamic *
@@ -778,22 +780,22 @@ createparamtable(void)
     if(uname(&unamebuf)) setsparam("CPUTYPE", ztrdup("unknown"));
     else
     {
-       machinebuf = ztrdup(unamebuf.machine);
+       machinebuf = ztrdup_metafy(unamebuf.machine);
        setsparam("CPUTYPE", machinebuf);
     }
-	
+
 #else
-    setsparam("CPUTYPE", ztrdup("unknown"));
+    setsparam("CPUTYPE", ztrdup_metafy("unknown"));
 #endif
-    setsparam("MACHTYPE", ztrdup(MACHTYPE));
-    setsparam("OSTYPE", ztrdup(OSTYPE));
-    setsparam("TTY", ztrdup(ttystrname));
-    setsparam("VENDOR", ztrdup(VENDOR));
-    setsparam("ZSH_NAME", ztrdup(zsh_name));
-    setsparam("ZSH_VERSION", ztrdup(ZSH_VERSION));
-    setsparam("ZSH_PATCHLEVEL", ztrdup(ZSH_PATCHLEVEL));
+    setsparam("MACHTYPE", ztrdup_metafy(MACHTYPE));
+    setsparam("OSTYPE", ztrdup_metafy(OSTYPE));
+    setsparam("TTY", ztrdup_metafy(ttystrname));
+    setsparam("VENDOR", ztrdup_metafy(VENDOR));
+    setsparam("ZSH_NAME", ztrdup_metafy(zsh_name));
+    setsparam("ZSH_VERSION", ztrdup_metafy(ZSH_VERSION));
+    setsparam("ZSH_PATCHLEVEL", ztrdup_metafy(ZSH_PATCHLEVEL));
     setaparam("signals", sigptr = zalloc((SIGCOUNT+4) * sizeof(char *)));
-    for (t = sigs; (*sigptr++ = ztrdup(*t++)); );
+    for (t = sigs; (*sigptr++ = ztrdup_metafy(*t++)); );
 
     noerrs = 0;
 }
@@ -1903,6 +1905,18 @@ fetchvalue(Value v, char **pptr, int bracks, int flags)
     if (!bracks && *s)
 	return NULL;
     *pptr = s;
+#if 0
+    /*
+     * Check for large subscripts that might be erroneous.
+     * This code is too gross in several ways:
+     * - the limit is completely arbitrary
+     * - the test vetoes operations on existing arrays
+     * - it's not at all clear a general test on large arrays of
+     *   this kind is any use.
+     *
+     * Until someone comes up with workable replacement code it's
+     * therefore commented out.
+     */
     if (v->start > MAX_ARRLEN) {
 	zerr("subscript too %s: %d", "big", v->start + !isset(KSHARRAYS));
 	return NULL;
@@ -1919,6 +1933,7 @@ fetchvalue(Value v, char **pptr, int bracks, int flags)
 	zerr("subscript too %s: %d", "small", v->end);
 	return NULL;
     }
+#endif
     return v;
 }
 
@@ -3454,18 +3469,104 @@ tiedarrunsetfn(Param pm, UNUSED(int exp))
 
 /**/
 static void
-arrayuniq(char **x, int freeok)
+simple_arrayuniq(char **x, int freeok)
 {
     char **t, **p = x;
+    char *hole = "";
 
+    /* Find duplicates and replace them with holes */
     while (*++p)
 	for (t = x; t < p; t++)
-	    if (!strcmp(*p, *t)) {
+	    if (*t != hole && !strcmp(*p, *t)) {
 		if (freeok)
 		    zsfree(*p);
-		for (t = p--; (*t = t[1]) != NULL; t++);
+		*p = hole;
 		break;
 	    }
+    /* Swap non-holes into holes in optimal jumps */
+    for (p = t = x; *t != NULL; t++) {
+	if (*t == hole) {
+	    while (*p == hole)
+		++p;
+	    if ((*t = *p) != NULL)
+		*p++ = hole;
+	} else if (p == t)
+	    p++;
+    }
+    /* Erase all the remaining holes, just in case */
+    while (++t < p)
+	*t = NULL;
+}
+
+/**/
+static void
+arrayuniq_freenode(HashNode hn)
+{
+    (void)hn;
+}
+
+/**/
+HashTable
+newuniqtable(zlong size)
+{
+    HashTable ht = newhashtable((int)size, "arrayuniq", NULL);
+    /* ??? error checking */
+
+    ht->hash        = hasher;
+    ht->emptytable  = emptyhashtable;
+    ht->filltable   = NULL;
+    ht->cmpnodes    = strcmp;
+    ht->addnode     = addhashnode;
+    ht->getnode     = gethashnode2;
+    ht->getnode2    = gethashnode2;
+    ht->removenode  = removehashnode;
+    ht->disablenode = disablehashnode;
+    ht->enablenode  = enablehashnode;
+    ht->freenode    = arrayuniq_freenode;
+    ht->printnode   = NULL;
+
+    return ht;
+}
+
+/**/
+static void
+arrayuniq(char **x, int freeok)
+{
+    char **it, **write_it;
+    zlong array_size = arrlen(x);
+    HashTable ht;
+
+    if (array_size == 0)
+	return;
+    if (array_size < 10 || !(ht = newuniqtable(array_size + 1))) {
+	/* fallback to simpler routine */
+	simple_arrayuniq(x, freeok);
+	return;
+    }
+
+    for (it = x, write_it = x; *it;) {
+	if (! gethashnode2(ht, *it)) {
+	    HashNode new_node = zhalloc(sizeof(struct hashnode));
+	    if (!new_node) {
+		/* Oops, out of heap memory, no way to recover */
+		zerr("out of memory in arrayuniq");
+		break;
+	    }
+	    (void) addhashnode2(ht, *it, new_node);
+	    *write_it = *it;
+	    if (it != write_it)
+		*it = NULL;
+	    ++write_it;
+	}
+	else {
+	    if (freeok)
+		zsfree(*it);
+	    *it = NULL;
+	}
+	++it;
+    }
+    
+    deletehashtable(ht);
 }
 
 /**/
