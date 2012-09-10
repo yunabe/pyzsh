@@ -27,8 +27,24 @@ static int pyzsh_execbuiltin(const char* cmd, LinkList args) {
   }
 }
 
+static int pyzsh_isshfunc(const char* cmd) {
+  if (shfunctab->getnode(shfunctab, cmd)) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 static void pyzsh_child_unblock(void) {
   child_unblock();
+}
+
+static char* pyzsh_quotestring(const char* s) {
+  return quotestring(s, NULL, QT_BACKSLASH);
+}
+
+static void pyzsh_execstring(char* s) {
+  execstring(s, 0, 0, "pyzshcmd");
 }
 
 %}
@@ -53,6 +69,7 @@ static void pyzsh_child_unblock(void) {
 const char* pyzsh_lookupalias(const char* text);
 int pyzsh_isaliasglobal(const char* text);
 int pyzsh_execbuiltin(const char* cmd, LinkList args);
+int pyzsh_isshfunc(const char* cmd);
 
 int lexstop;
 int errflag;
@@ -69,3 +86,5 @@ void hwbegin(int offset);
 void hwend(void);
 
 void pyzsh_child_unblock(void);
+char* pyzsh_quotestring(const char*);
+void pyzsh_execstring(char* s);
