@@ -4,6 +4,7 @@ import re
 import sys
 from StringIO import StringIO
 
+from pysh.converter import Converter, RoughLexer
 import pysh.shell.builtin
 from pysh.shell.evaluator import Evaluator
 from pysh.shell.evaluator import start_global_wait_thread
@@ -17,42 +18,56 @@ from zsh.native import hgetc
 import zsh.scanner
 
 
-# TODO: Show more information using cmdpush and cmdpop.
-class ZshScanner(zsh.scanner.Scanner):
+class ZshReader(object):
   def __init__(self):
-    super(ZshScanner, self).__init__()
-    self.first = True
+    self.__first = True
 
-  def read(self):
+  def read(self, n):
+    assert n == 1
     if zsh.native.cvar.lexstop:
-      raise StopIteration()
-    else:
-      # Special hack to store a command (chline) to history. This hack is
-      # much better than setting chwordpos >= 4 (it causes segfault
-      # with timing error.) See hend in hist.c.
-      # TODO: Reduce calls of hwbegin and hwend.
-      zsh.native.hwbegin(0)
-      c = chr(hgetc())
-      zsh.native.hwend()
-      if self.first:
-        # disable print prompt.
-        zsh.native.cvar.isfirstln = 0
-        zsh.native.cvar.curindentwidth = 0
-        self.first = False
-      return c
+      return ''
+    # Special hack to store a command (chline) to history. This hack is
+    # much better than setting chwordpos >= 4 (it causes segfault
+    # with timing error.) See hend in hist.c.
+    # TODO: Reduce calls of hwbegin and hwend.
+    zsh.native.hwbegin(0)
+    c = chr(hgetc())
+    zsh.native.hwend()
+    if self.__first:
+      # disable print prompt.
+      zsh.native.cvar.isfirstln = 0
+      zsh.native.cvar.curindentwidth = 0
+      self.__first = False
+    return c
 
-  def expectIndent(self, indent):
-    zsh.native.cvar.curindentwidth = indent
 
-  def expectShellMode(self, expectation):
-    zsh.native.cvar.expect_shellmode = 1 if expectation else 0
+# TODO: Show more information using cmdpush and cmdpop.
+class ZshRoughLexer(RoughLexer):
+  def __init__(self):
+    RoughLexer.__init__(self, ZshReader())
 
-def scan():
-  scanner = ZshScanner()
-  return scanner.scan()
+  def _predict_indent(self, indent):
+    zsh.native.cvar.curindentwidth = len(indent)
 
-CMD_PATTERN = re.compile(r'^(\s*)>(\s*)')
-INDENT_PATTERN = re.compile(r'^(\s*)')
+  def _predict_shellmode(self, prediction):
+    zsh.native.cvar.expect_shellmode = 1 if prediction else 0
+
+
+def scan_and_convert():
+  lexer = ZshRoughLexer()
+  tokens = []
+  for token in lexer:
+    indent = token[0]
+    if not indent and token[1] == 'python' and is_python_expr(token[2]):
+      token = (token[0], token[1], 'print ' + token[2])
+    tokens.append(token)
+    if not indent and zsh.native.cvar.curindentwidth == 0:
+      break
+  io = StringIO()
+  converter = Converter(tokens, io, run_funcname='zsh.run')
+  converter.convert(False)
+  return io.getvalue()
+
 
 def is_python_expr(line):
   try:
@@ -61,38 +76,22 @@ def is_python_expr(line):
   except:
     return False
 
-def rewrite(cmd, interactive):
-  out = []
-  for line in cmd.split('\n'):
-    if not line:
-      continue
-    m = CMD_PATTERN.match(line)
-    if m:
-      body = line[m.end(0):]
-      if body:
-        out.append('%szsh.run(%s, globals(), locals())' % (
-            m.group(1), `body`))
-    else:
-      indent = INDENT_PATTERN.match(line).group(0)
-      line = line[len(indent):]
-      if interactive and is_python_expr(line):
-        # print expr if intaractive is True.
-        formatter = '%sprint %s'
-      else:
-        formatter = '%s%s'
-      out.append(formatter % (indent, line))
-  return '\n'.join(out)
 
 def read_and_rewrite(path):
   try:
-    return rewrite(file(path, 'r').read(), False)
+    content = file(path, 'r').read()
+    lexer = RoughLexer(StringIO(content))
+    io = StringIO()
+    converter = Converter(lexer, io, run_funcname='zsh.run')
+    converter.convert(False)
+    return io.getvalue()
   except:
     return None
 
+
 def command():
   try:
-    cmd = scan().strip()
-    cmd = rewrite(cmd, True)
+    cmd = scan_and_convert()
   except KeyboardInterrupt:
     cmd = None
   if not cmd:
@@ -120,13 +119,8 @@ class AliasMap(object):
 alias_map = AliasMap()
 
 
-def run(cmd_str, globals, locals):
-  start_global_wait_thread()
-  tok = Tokenizer(cmd_str, alias_map=alias_map)
-  parser = Parser(tok)
-  evaluator = Evaluator(parser)
-  evaluator.execute(globals, locals)
-  return evaluator.rc()
+def run(cmd_str, globals, locals, responses):
+  return pysh.shell.runner.run(cmd_str, globals, locals, responses, alias_map)
 
 
 @pycmd(name='cd', inType=IOType.No, outType=IOType.No)
