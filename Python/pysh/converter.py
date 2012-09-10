@@ -17,9 +17,51 @@ class RoughLexer(object):
   def __init__(self, reader):
     self.reader = reader
     self.c = None
+    # Used for indent prediction.
+    self.__indent_stack = []
+
+  def __iter__(self):
+    return self
 
   def is_space(self, c):
     return c == ' ' or c == '\t' or c == '\f' or c == '\v'
+
+  def __indent_width(self, indent):
+    return sum(map(lambda c: 1 if c == ' ' else 8, indent))
+
+  def __push_indent(self, indent):
+    width = self.__indent_width(indent)
+    while self.__indent_stack and self.__indent_stack[-1][1] >= width:
+      self.__indent_stack.pop()
+    self.__indent_stack.append((indent, width))
+
+  def __pop_indent(self):
+    if self.__indent_stack:
+      self.__indent_stack.pop()
+
+  def __predict_next_indent(self, indent, mode, content):
+    if len(content) == 0:
+      self.__pop_indent()
+    else:
+      self.__push_indent(indent)
+      if mode == 'python':
+        if content.endswith(':'):
+          self.__push_indent(indent + ' ' * 4)
+        elif (content.startswith('pass') or
+              content.startswith('return')):
+          self.__pop_indent()
+
+    if self.__indent_stack:
+      prediction = self.__indent_stack[-1][0]
+    else:
+      prediction = ''
+    self._predict_indent(prediction)
+
+  def _predict_indent(self, indent):
+    pass
+
+  def _predict_shellmode(self, prediction):
+    pass
 
   def read(self):
     self.c = self.reader.read(1)
@@ -94,9 +136,9 @@ class RoughLexer(object):
     if self.c is None:
       self.c = self.reader.read(1)
 
-    indent = StringIO.StringIO()
+    indent_writer = StringIO.StringIO()
     while self.is_space(self.c):
-      indent.write(self.c)
+      indent_writer.write(self.c)
       self.read()
 
     mode = 'python'
@@ -118,10 +160,10 @@ class RoughLexer(object):
         break
       elif self.c == '\r':
         if self.read() == '\n':
-          self.read() # discard '\n'
+          self.c = None  # discard '\n'
         break
       elif self.c == '\n':
-        self.read() # discard '\n'
+        self.c = None  # discard '\n'
         break
       elif self.c == '\\':
         self.read()
@@ -131,15 +173,19 @@ class RoughLexer(object):
         self.read()
     content_value = content.getvalue()
     if self.c == '' and not content_value:
-      return None, None, None
+      raise StopIteration()
     else:
-      return indent.getvalue(), mode, content_value
+      indent = indent_writer.getvalue()
+      self._predict_shellmode(mode == 'shell')
+      self.__predict_next_indent(indent, mode, content_value)
+      return indent, mode, content_value
 
 
 class Converter(object):
-  def __init__(self, reader, writer):
-    self.lexer = RoughLexer(reader)
+  def __init__(self, lexer, writer, run_funcname='pysh.shell.runner.run'):
+    self.lexer = lexer
     self.writer = writer
+    self.__fun_func_name = run_funcname
 
   def extractResponseNames(self, content):
     parser = Parser(Tokenizer(content))
@@ -169,28 +215,18 @@ class Converter(object):
     if with_signature:
       self.writer.write(SIGNATURE)
     self.writer.write('import pysh.shell.runner\n')
-    use_existing = False
-    while True:
-      if not use_existing:
-        indent, mode, content = self.lexer.next()
-      else:
-        use_existing = False
-        
-      if indent is None:
-        break
-
+    for indent, mode, content in self.lexer:
       self.writer.write(indent)
       if mode == 'python':
         self.writer.write(content)
-      else:
+      elif content:
         names = self.extractResponseNames(content)
         if names:
           self.writer.write(', '.join(names + ['']) + '= ')
-        self.writer.write(
-          'pysh.shell.runner.run(%s, '
-          'locals(), globals(), %s)' % (`content`, `names`))
+        self.writer.write('%s(%s, locals(), globals(), %s)' % (
+            self.__fun_func_name, `content`, `names`))
       self.writer.write('\n')
 
 
 if __name__ == '__main__':
-  Converter(sys.stdin, sys.stdout).convert(True)
+  Converter(RoughLexer(sys.stdin), sys.stdout).convert(True)
